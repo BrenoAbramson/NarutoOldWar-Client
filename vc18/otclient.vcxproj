@@ -431,6 +431,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <ForcedIncludeFiles></ForcedIncludeFiles>
     </ClCompile>
+    <ClCompile Include="..\src\framework\core\protectedassetcontainer.cpp" />
     <ClCompile Include="..\src\framework\core\resourcemanager.cpp" />
     <ClCompile Include="..\src\framework\core\scheduledevent.cpp" />
     <ClCompile Include="..\src\framework\core\timer.cpp" />
@@ -609,6 +610,8 @@
     <ClInclude Include="..\src\framework\core\logger.h" />
     <ClInclude Include="..\src\framework\core\module.h" />
     <ClInclude Include="..\src\framework\core\modulemanager.h" />
+    <ClInclude Include="..\src\framework\core\protectedassetcontainer.h" />
+    <ClInclude Include="..\src\framework\core\protectedassetformat.h" />
     <ClInclude Include="..\src\framework\core\resourcemanager.h" />
     <ClInclude Include="..\src\framework\core\scheduledevent.h" />
     <ClInclude Include="..\src\framework\core\timer.h" />
