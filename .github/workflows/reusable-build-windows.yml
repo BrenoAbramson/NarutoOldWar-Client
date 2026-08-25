@@ -148,6 +148,35 @@ jobs:
           vcpkgGitURL: "https://github.com/microsoft/vcpkg.git"
           vcpkgGitCommitId: ${{ env.VCPKG_GIT_COMMIT_ID }}
 
+      - name: Generate gitinfo.h
+        if: matrix.type == 'Solution'
+        shell: pwsh
+        run: |
+          $branch = git rev-parse --abbrev-ref HEAD
+          if (-not $branch -or $branch -eq "HEAD") {
+            $branch = "${{ github.ref_name }}"
+          }
+
+          $version = git describe --tags --abbrev=0 2>$null
+          if (-not $version) {
+            $version = "4.x"
+          }
+
+          $commits = git rev-list --count HEAD
+          if (-not $commits) {
+            $commits = "0"
+          }
+
+          @(
+            "#pragma once"
+            "#define GIT_BRANCH $branch"
+            "#define GIT_VERSION $version"
+            "#define GIT_COMMITS $commits"
+          ) | Set-Content -Path src/gitinfo.h -Encoding utf8
+
+          Write-Host "Generated src/gitinfo.h:"
+          Get-Content src/gitinfo.h
+
       - name: Run CMake
         if: matrix.type == 'CMake'
         uses: lukka/run-cmake@v10
