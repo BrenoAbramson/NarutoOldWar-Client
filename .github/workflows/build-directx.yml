@@ -1,0 +1,13 @@
+name: Build DirectX
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  windows:
+    uses: ./.github/workflows/reusable-build-windows.yml
+    secrets: inherit

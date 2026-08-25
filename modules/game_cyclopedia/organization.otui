@@ -1,0 +1,231 @@
+OrganizationMemberHeader < Panel
+  height: 26
+  background-color: #363636
+  border-width: 1
+  border-color: #555555
+
+  Label
+    id: nameColumn
+    text: Nome
+    width: 190
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+
+  Label
+    id: roleColumn
+    text: Cargo
+    width: 130
+    anchors.left: nameColumn.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  Label
+    id: statusColumn
+    text: Status
+    width: 100
+    anchors.left: roleColumn.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  Label
+    id: levelColumn
+    text: Nivel
+    anchors.left: statusColumn.right
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+
+OrganizationMemberRow < Button
+  height: 28
+  text: ""
+  text-offset: 0 0
+
+  Label
+    id: nameColumn
+    width: 190
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+
+  Label
+    id: roleColumn
+    width: 130
+    anchors.left: nameColumn.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  Label
+    id: statusColumn
+    width: 100
+    anchors.left: roleColumn.right
+    anchors.verticalCenter: parent.verticalCenter
+
+  Label
+    id: levelColumn
+    anchors.left: statusColumn.right
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+
+MainWindow
+  id: organizationWindow
+  text: Organizacoes
+  size: 760 500
+  @onEscape: modules.game_cyclopedia.toggleOrganizationWindow()
+
+  Panel
+    id: leftBlock
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.bottom: separator.top
+    width: 190
+    border-width: 1
+    border-color: #555555
+
+    Label
+      id: organizationName
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin: 8
+      text-align: center
+      text: Organizacao
+
+    Panel
+      id: optionList
+      anchors.top: organizationName.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      margin: 8
+      layout:
+        type: verticalBox
+        fit-children: false
+        spacing: 5
+
+  Panel
+    id: rightBlock
+    anchors.top: parent.top
+    anchors.left: leftBlock.right
+    anchors.right: parent.right
+    anchors.bottom: separator.top
+    margin-left: 10
+    border-width: 1
+    border-color: #555555
+
+    Label
+      id: sectionTitle
+      anchors.top: parent.top
+      anchors.left: parent.left
+      anchors.right: parent.right
+      margin: 8
+      text-align: center
+      text: Membros
+
+    Panel
+      id: contentList
+      anchors.top: sectionTitle.bottom
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: detailPanel.top
+      margin: 8
+      layout:
+        type: verticalBox
+        fit-children: false
+        spacing: 3
+
+    Panel
+      id: detailPanel
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: actionPanel.top
+      height: 88
+      margin: 8
+      border-width: 1
+      border-color: #555555
+
+      Label
+        id: detailText
+        anchors.fill: parent
+        margin: 7
+        text-wrap: true
+        text: Selecione um membro.
+
+    Panel
+      id: actionPanel
+      anchors.left: parent.left
+      anchors.right: parent.right
+      anchors.bottom: parent.bottom
+      height: 34
+      margin: 8
+      layout:
+        type: horizontalBox
+        fit-children: false
+        spacing: 6
+
+      TextEdit
+        id: playerNameEdit
+        width: 205
+        visible: false
+
+      Button
+        id: inviteButton
+        text: Convidar
+        width: 80
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationInviteFromField()
+
+      Button
+        id: acceptButton
+        text: Aceitar
+        width: 72
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationAcceptSelected()
+
+      Button
+        id: declineButton
+        text: Recusar
+        width: 72
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationDeclineSelected()
+
+      Button
+        id: promoteButton
+        text: Promover
+        width: 76
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationPromoteSelected()
+
+      Button
+        id: demoteButton
+        text: Rebaixar
+        width: 76
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationDemoteSelected()
+
+      Button
+        id: kickButton
+        text: Expulsar
+        width: 72
+        visible: false
+        @onClick: modules.game_cyclopedia.organizationKickSelected()
+
+  HorizontalSeparator
+    id: separator
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-bottom: 8
+
+  Button
+    id: leaveButton
+    text: Sair da organizacao
+    width: 128
+    anchors.left: parent.left
+    anchors.bottom: parent.bottom
+    visible: false
+    @onClick: modules.game_cyclopedia.organizationConfirmLeave()
+
+  Button
+    id: closeButton
+    text: Fechar
+    width: 64
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    @onClick: modules.game_cyclopedia.toggleOrganizationWindow()

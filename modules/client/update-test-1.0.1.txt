@@ -1,0 +1,3 @@
+Atualizacao de teste do launcher - versao 1.0.1
+
+Se este arquivo apareceu dentro do cliente apos usar o launcher, a atualizacao funcionou.
