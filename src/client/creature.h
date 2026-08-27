@@ -57,6 +57,7 @@ public:
     void setId(const uint32_t id) override { m_id = id; }
     void setMasterId(const uint32_t id) { m_masterId = id; }
     void setName(std::string_view name);
+    void setHengeInformationHidden(bool hidden) { m_hengeInformationHidden = hidden; }
     void setHealthPercent(uint8_t healthPercent);
     void setManaPercent(uint8_t value) { m_manaPercent = value; }
     void setDirection(Otc::Direction direction);
@@ -364,6 +365,7 @@ private:
 
     bool m_removed{ true };
     bool m_drawOutfitColor{ true };
+    bool m_hengeInformationHidden{ false };
     bool m_showShieldTexture{ true };
     bool m_typing{ false };
     bool m_isCovered{ false };

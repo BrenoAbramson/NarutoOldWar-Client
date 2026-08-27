@@ -45,6 +45,81 @@ local mobileConfig = {
     mobileHeightShortcuts = 0
 }
 local isExtendedViewActive = false
+local HENGE_OPCODE = 90
+local hengeOriginal = {}
+
+local function splitHengeBuffer(buffer)
+    local parts = {}
+    for part in string.gmatch(buffer .. '|', '(.-)|') do
+        table.insert(parts, part)
+    end
+    return parts
+end
+
+local function restoreHenge(creatureId)
+    local original = hengeOriginal[creatureId]
+    local creature = g_map.getCreatureById(creatureId)
+    if original and creature then
+        creature:setOutfit(original.outfit)
+        creature:setName(original.name)
+        creature:setHengeInformationHidden(false)
+    end
+    hengeOriginal[creatureId] = nil
+end
+
+local function startHengeSelection()
+    selectedType = 'henge'
+    selectedThing = true
+    mouseGrabberWidget:grabMouse()
+    if modules.client_options and modules.client_options.getOption('nativeCursor') then
+        g_window.setSystemCursor('cross')
+    else
+        g_mouse.pushCursor('target')
+    end
+end
+
+local function stopHengeSelection()
+    if selectedType ~= 'henge' then return end
+    selectedThing = nil
+    selectedType = nil
+    if modules.client_options and modules.client_options.getOption('nativeCursor') then
+        g_window.restoreMouseCursor()
+    else
+        g_mouse.popCursor('target')
+    end
+    if mouseGrabberWidget then mouseGrabberWidget:ungrabMouse() end
+end
+
+local function onHengeOpcode(protocol, opcode, buffer)
+    if buffer == 'select' then
+        startHengeSelection()
+        return
+    elseif buffer == 'cancel' then
+		stopHengeSelection()
+        return
+    end
+    local p = splitHengeBuffer(buffer)
+    local creatureId = tonumber(p[2])
+    if p[1] == 'clear' then
+        restoreHenge(creatureId)
+        return
+    end
+    if p[1] ~= 'apply' then return end
+    local creature = g_map.getCreatureById(creatureId)
+    if not creature then return end
+    if not hengeOriginal[creatureId] then
+        hengeOriginal[creatureId] = { outfit = creature:getOutfit(), name = creature:getName() }
+    end
+    local isItem = tonumber(p[3]) == 1
+    if isItem then
+        creature:setOutfit({ type = 0, auxType = tonumber(p[10]) })
+        creature:setHengeInformationHidden(true)
+    else
+        creature:setOutfit({ type = tonumber(p[4]), auxType = 0, head = tonumber(p[5]), body = tonumber(p[6]), legs = tonumber(p[7]), feet = tonumber(p[8]), addons = tonumber(p[9]) })
+        creature:setName(p[11] or creature:getName())
+        creature:setHengeInformationHidden(false)
+    end
+end
 
 local function updateSidePanelButtons()
     leftIncreaseSidePanels:setEnabled(not modules.client_options.getOption('showLeftExtraPanel'))
@@ -67,6 +142,7 @@ local function applyMobileMargins()
 end
 
 function init()
+	ProtocolGame.registerExtendedOpcode(HENGE_OPCODE, onHengeOpcode)
     g_ui.importStyle('styles/countwindow')
     g_ui.importStyle('styles/countStashWindow')
 
@@ -192,6 +268,11 @@ function bindKeys()
             callback = function()
                 if lastStopAction + 50 > g_clock.millis() then return end
                 lastStopAction = g_clock.millis()
+                if selectedType == 'henge' then
+                    stopHengeSelection()
+                    local protocol = g_game.getProtocolGame()
+                    if protocol then protocol:sendExtendedOpcode(HENGE_OPCODE, 'cancel') end
+                end
                 g_game.cancelAttackAndFollow()
             end,
         }
@@ -220,6 +301,7 @@ function bindKeys()
 end
 
 function terminate()
+	ProtocolGame.unregisterExtendedOpcode(HENGE_OPCODE)
     StatsBar.terminate()
 
     hide()
@@ -264,7 +346,8 @@ function onGameStart()
 end
 
 function onGameEnd()
-    hide()
+	for creatureId, _ in pairs(hengeOriginal) do restoreHenge(creatureId) end
+	hide()
 end
 
 function show()
@@ -480,8 +563,13 @@ function onMouseGrabberRelease(self, mousePosition, mouseButton)
                 onUseWith(clickedWidget, mousePosition)
             elseif selectedType == 'trade' then
                 onTradeWith(clickedWidget, mousePosition)
+            elseif selectedType == 'henge' then
+                onHengeSelect(clickedWidget, mousePosition)
             end
         end
+	elseif selectedType == 'henge' then
+		local protocol = g_game.getProtocolGame()
+		if protocol then protocol:sendExtendedOpcode(HENGE_OPCODE, 'cancel') end
     end
 
     selectedThing = nil
@@ -493,6 +581,27 @@ function onMouseGrabberRelease(self, mousePosition, mouseButton)
     end
     self:ungrabMouse()
     return true
+end
+
+function onHengeSelect(clickedWidget, mousePosition)
+    local thing = nil
+    if clickedWidget:getClassName() == 'UIGameMap' then
+        local tile = clickedWidget:getTile(mousePosition)
+        if tile then thing = tile:getTopCreature() or tile:getTopLookThing() end
+    elseif clickedWidget:getClassName() == 'UIItem' and not clickedWidget:isVirtual() then
+        thing = clickedWidget:getItem()
+    elseif clickedWidget:getClassName() == 'UICreatureButton' then
+        thing = clickedWidget:getCreature()
+    end
+    local protocol = g_game.getProtocolGame()
+    if not protocol then return end
+    if not thing then protocol:sendExtendedOpcode(HENGE_OPCODE, 'cancel'); return end
+    if thing:isCreature() then
+        protocol:sendExtendedOpcode(HENGE_OPCODE, 'creature|' .. thing:getId())
+    else
+        local pos = thing:getPosition()
+        protocol:sendExtendedOpcode(HENGE_OPCODE, string.format('item|%d|%d|%d|%d|%d', pos.x, pos.y, pos.z, thing:getStackPos(), thing:getId()))
+    end
 end
 
 function onUseWith(clickedWidget, mousePosition)

@@ -1756,6 +1756,12 @@ function Creature:getMasterId() end
 ---@return string
 function Creature:getName() end
 
+---@param name string
+function Creature:setName(name) end
+
+---@param hidden boolean
+function Creature:setHengeInformationHidden(hidden) end
+
 ---@return integer
 function Creature:getHealthPercent() end
 

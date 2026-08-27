@@ -165,6 +165,8 @@ void Creature::draw(const Rect& destRect, const uint8_t size, const bool center)
 
 void Creature::drawInformation(const MapPosInfo& mapRect, const Point& dest, const int drawFlags)
 {
+    if (m_hengeInformationHidden)
+        return;
     static constexpr Color
         DEFAULT_COLOR(96, 96, 96),
         NPC_COLOR(0x66, 0xcc, 0xff);
