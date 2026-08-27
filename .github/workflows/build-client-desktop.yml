@@ -1,0 +1,19 @@
+name: Build Client Windows and macOS
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: read
+
+jobs:
+  windows:
+    name: Client Windows
+    uses: ./.github/workflows/reusable-build-windows.yml
+    secrets: inherit
+
+  macos:
+    name: Client macOS
+    uses: ./.github/workflows/reusable-build-macos.yml
+    secrets: inherit
