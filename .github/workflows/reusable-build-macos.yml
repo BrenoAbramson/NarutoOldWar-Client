@@ -93,6 +93,30 @@ jobs:
       - name: Install CMake and Ninja
         uses: lukka/get-cmake@v3.31.6
 
+      - name: Generate gitinfo.h
+        shell: bash
+        run: |
+          branch=$(git rev-parse --abbrev-ref HEAD)
+          if [ -z "$branch" ] || [ "$branch" = "HEAD" ]; then
+            branch="${{ github.ref_name }}"
+          fi
+
+          version=$(git describe --tags --abbrev=0 2>/dev/null || true)
+          if [ -z "$version" ]; then
+            version="4.x"
+          fi
+
+          commits=$(git rev-list --count HEAD)
+          if [ -z "$commits" ]; then
+            commits="0"
+          fi
+
+          printf '#pragma once\n#define GIT_BRANCH %s\n#define GIT_VERSION %s\n#define GIT_COMMITS %s\n' \
+            "$branch" "$version" "$commits" > src/gitinfo.h
+
+          echo "Generated src/gitinfo.h:"
+          sed -n '1,10p' src/gitinfo.h
+
       - name: Cache CMake build directory
         uses: actions/cache@v4
         with:
