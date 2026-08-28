@@ -56,6 +56,13 @@ local function splitHengeBuffer(buffer)
     return parts
 end
 
+local function refreshHengeBattle(creature, hidden)
+    local battle = modules.game_battle
+    if not battle then return end
+    if battle.onCreatureDisappear then battle.onCreatureDisappear(creature) end
+    if not hidden and battle.onCreatureAppear then battle.onCreatureAppear(creature) end
+end
+
 local function restoreHenge(creatureId)
     local original = hengeOriginal[creatureId]
     local creature = g_map.getCreatureById(creatureId)
@@ -63,6 +70,7 @@ local function restoreHenge(creatureId)
         creature:setOutfit(original.outfit)
         creature:setName(original.name)
         creature:setHengeInformationHidden(false)
+        refreshHengeBattle(creature, false)
     end
     hengeOriginal[creatureId] = nil
 end
@@ -114,10 +122,12 @@ local function onHengeOpcode(protocol, opcode, buffer)
     if isItem then
         creature:setOutfit({ type = 0, auxType = tonumber(p[10]) })
         creature:setHengeInformationHidden(true)
+        refreshHengeBattle(creature, true)
     else
         creature:setOutfit({ type = tonumber(p[4]), auxType = 0, head = tonumber(p[5]), body = tonumber(p[6]), legs = tonumber(p[7]), feet = tonumber(p[8]), addons = tonumber(p[9]) })
         creature:setName(p[11] or creature:getName())
         creature:setHengeInformationHidden(false)
+        refreshHengeBattle(creature, false)
     end
 end
 
