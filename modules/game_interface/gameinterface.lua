@@ -587,7 +587,7 @@ function onHengeSelect(clickedWidget, mousePosition)
     local thing = nil
     if clickedWidget:getClassName() == 'UIGameMap' then
         local tile = clickedWidget:getTile(mousePosition)
-        if tile then thing = tile:getTopCreature() or tile:getTopLookThing() end
+        if tile then thing = tile:getTopCreature() or tile:getTopUseThing() end
     elseif clickedWidget:getClassName() == 'UIItem' and not clickedWidget:isVirtual() then
         thing = clickedWidget:getItem()
     elseif clickedWidget:getClassName() == 'UICreatureButton' then
