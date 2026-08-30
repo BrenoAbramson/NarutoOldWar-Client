@@ -53,15 +53,20 @@ lastHighlightWidget = nil
 -- @ boolean
 isLoaded = false
 local areEventsConnected = false
-local learnedJutsuNames = {}
+local learnedJutsuData = {}
 local rebuildActiveActionBars
 
+function getLearnedJutsuData(words)
+    return learnedJutsuData[words and words:lower() or '']
+end
+
 function getLearnedJutsuName(words)
-    return learnedJutsuNames[words and words:lower() or '']
+    local jutsu = getLearnedJutsuData(words)
+    return jutsu and jutsu.name or nil
 end
 
 function replaceBottomBarWithJutsus(jutsus)
-    learnedJutsuNames = {}
+    learnedJutsuData = {}
 
     for slot = 1, 50 do
         ApiJson.removeAction(1, slot)
@@ -72,7 +77,7 @@ function replaceBottomBarWithJutsus(jutsus)
             break
         end
         if jutsu.words and jutsu.words ~= '' then
-            learnedJutsuNames[jutsu.words:lower()] = jutsu.name
+            learnedJutsuData[jutsu.words:lower()] = jutsu
             ApiJson.createOrUpdateText(1, slot, jutsu.words, true)
         end
     end

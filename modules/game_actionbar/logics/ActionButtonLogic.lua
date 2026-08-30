@@ -645,7 +645,13 @@ function setupButtonTooltip(button, isEmpty)
         end
         local cooldown = ((data.exhaustion or 0) / 1000)
         local mana = data.mana or 0
-        return " Cooldown:  " .. cooldown .. "s\n" .. "         Mana:  " .. mana
+        local requiredLevel = data.level or 0
+        local result = "     Level:  " .. requiredLevel .. "\n"
+        result = result .. "   Chakra:  " .. mana
+        if cooldown > 0 then
+            result = result .. "\n Cooldown:  " .. cooldown .. "s"
+        end
+        return result
     end
 
     if cache.actionType == UseTypes["chatText"] then
@@ -653,7 +659,10 @@ function setupButtonTooltip(button, isEmpty)
             actionDesc = 'Say: "' .. lineBreaks(cache.param, 44, 36) .. '"\n'
             actionDesc = actionDesc .. "Auto sent:  " .. (cache.sendAutomatic and "Yes" or "No")
         else
-            actionDesc = "Cast " .. Spells.getSpellNameByWords(spellData.words) .. "\n"
+            local spellName = (spellData and spellData.name)
+                or Spells.getSpellNameByWords(spellData.words)
+                or cache.param
+            actionDesc = "Cast " .. spellName .. "\n"
             actionDesc = actionDesc .. "   Formula:  " .. cache.param .. "\n"
             actionDesc = actionDesc .. spellStatsTooltip(spellData)
         end
@@ -1079,7 +1088,19 @@ function updateButton(button)
 
     if sendText then
         local spellData, param = Spells.getSpellDataByParamWords(sendText:lower())
+        local learnedSpellData = getLearnedJutsuData and getLearnedJutsuData(sendText)
         if spellData then
+            if learnedSpellData then
+                local mergedSpellData = {}
+                for key, value in pairs(spellData) do
+                    mergedSpellData[key] = value
+                end
+                mergedSpellData.name = learnedSpellData.name or spellData.name
+                mergedSpellData.words = learnedSpellData.words or spellData.words
+                mergedSpellData.level = learnedSpellData.level or spellData.level
+                mergedSpellData.mana = learnedSpellData.mana or spellData.mana
+                spellData = mergedSpellData
+            end
             local spellId = spellData.clientId
             if not spellId then
                 print("Warning Spell ID not found L734 modules/game_actionbar/logics/ActionButtonLogic.lua")
@@ -1108,8 +1129,14 @@ function updateButton(button)
 
             checkRemainSpellCooldown(button, spellData.id)
         else
-            local jutsuName = getLearnedJutsuName and getLearnedJutsuName(sendText)
-            button.item.text:setText(short_text(jutsuName or sendText, 15))
+            button.item.text:setText(short_text((learnedSpellData and learnedSpellData.name) or sendText, 15))
+            if learnedSpellData then
+                button.cache.isSpell = true
+                button.cache.spellData = learnedSpellData
+                if not playerCanUseSpell(learnedSpellData) then
+                    button.item.text.gray:setVisible(true)
+                end
+            end
         end
 
         button.item:setOn(true)

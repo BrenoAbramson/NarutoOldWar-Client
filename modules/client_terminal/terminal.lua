@@ -150,6 +150,7 @@ function init()
 
     terminalButton = modules.client_topmenu.addTopRightToggleButton('terminalButton', tr('Terminal') .. ' (Ctrl + T)',
                                                           '/images/topbuttons/terminal', toggle)
+    terminalButton:hide()
     Keybind.new("Misc.", "Toggle Terminal", "Ctrl+T", "")
     Keybind.bind("Misc.", "Toggle Terminal", {{
         type = KEY_DOWN,

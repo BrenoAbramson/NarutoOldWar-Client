@@ -1,0 +1,8 @@
+Module
+  name: game_rank_level
+  description: Level ranking and online player counter
+  author: Naruto Old War
+  sandboxed: true
+  scripts: [ game_rank_level ]
+  @onLoad: init()
+  @onUnload: terminate()

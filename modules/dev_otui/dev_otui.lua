@@ -2367,6 +2367,7 @@ function init()
   topButton = modules.client_topmenu.addTopRightToggleButton(
     'otuiEditorButton', tr('OTUI Editor'), '/images/topbuttons/buttons', toggle)
   topButton:setOn(false)
+  topButton:hide()
 
   Keybind.new('Debug', 'Toggle OTUI Editor', 'Ctrl+Alt+U', '')
   Keybind.bind('Debug', 'Toggle OTUI Editor', {

@@ -222,10 +222,10 @@ end
 function initializeSpelllist()
 	spellList:destroyChildren()
 	table.sort(learnedSpells, function(left, right)
-		local leftMagicLevel = tonumber(left.maglevel) or 0
-		local rightMagicLevel = tonumber(right.maglevel) or 0
-		if leftMagicLevel ~= rightMagicLevel then
-			return leftMagicLevel < rightMagicLevel
+		local leftLevel = tonumber(left.level) or 0
+		local rightLevel = tonumber(right.level) or 0
+		if leftLevel ~= rightLevel then
+			return leftLevel < rightLevel
 		end
 		return left.name:lower() < right.name:lower()
 	end)
@@ -262,14 +262,14 @@ function onLearnedSpellList(protocol, msg)
 		table.insert(learnedSpells, {
 			name = msg:getString(),
 			words = msg:getString(),
-			maglevel = msg:getU16(),
+			level = msg:getU16(),
 			mana = msg:getU16()
 		})
 	end
 
 	table.sort(learnedSpells, function(left, right)
-		if left.maglevel ~= right.maglevel then
-			return left.maglevel < right.maglevel
+		if left.level ~= right.level then
+			return left.level < right.level
 		end
 		return left.name < right.name
 	end)
@@ -322,7 +322,7 @@ end
 function updateSpellInformation(widget)
 	local info = widget.spellData
 	nameValueLabel:setText(info and info.name or '')
-	levelValueLabel:setText(info and info.maglevel or '')
+	levelValueLabel:setText(info and info.level or '')
 	manaValueLabel:setText(info and info.mana or '')
 end
 

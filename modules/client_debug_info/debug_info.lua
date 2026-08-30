@@ -25,6 +25,7 @@ function init()
 	debugInfoButton = modules.client_topmenu.addTopRightToggleButton("debugInfoButton", tr("Debug Info"),
 		"/images/topbuttons/debug", toggle)
 	debugInfoButton:setOn(false)
+	debugInfoButton:hide()
 
 	debugInfoWindow = g_ui.displayUI("debug_info")
 	debugInfoWindow:hide()

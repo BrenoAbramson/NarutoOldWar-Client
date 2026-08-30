@@ -130,7 +130,7 @@ MainWindow
     id: labelLevel
     anchors.left: spellList.right
     anchors.top: labelName.bottom
-    text: Magic Level:
+    text: Level:
 
   SpellInfoLabel
     id: labelMana

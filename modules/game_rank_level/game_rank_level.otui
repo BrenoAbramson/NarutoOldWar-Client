@@ -1,0 +1,94 @@
+RankLevelRow < UIWidget
+  height: 22
+  focusable: false
+
+  Label
+    id: position
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 48
+    text-align: center
+
+  Label
+    id: name
+    anchors.left: prev.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 250
+    margin-left: 8
+
+  Label
+    id: level
+    anchors.left: prev.right
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 8
+    margin-right: 8
+    text-align: right
+
+MainWindow
+  id: rankLevelWindow
+  !text: tr('System Rank Level')
+  size: 430 460
+  @onEscape: modules.game_rank_level.hide()
+
+  Panel
+    id: header
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 24
+    background-color: #232323
+
+    Label
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      width: 48
+      text: '#'
+      text-align: center
+
+    Label
+      anchors.left: prev.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 250
+      margin-left: 8
+      text: Nome
+
+    Label
+      anchors.left: prev.right
+      anchors.right: parent.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 8
+      margin-right: 22
+      text: Level
+      text-align: right
+
+  VerticalScrollBar
+    id: rankScroll
+    anchors.top: header.bottom
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-top: 4
+    margin-bottom: 8
+    step: 22
+    pixels-scroll: true
+
+  ScrollablePanel
+    id: entries
+    anchors.top: header.bottom
+    anchors.left: parent.left
+    anchors.right: rankScroll.left
+    anchors.bottom: closeButton.top
+    margin-top: 4
+    margin-bottom: 8
+    vertical-scrollbar: rankScroll
+    layout:
+      type: verticalBox
+      fit-children: true
+
+  Button
+    id: closeButton
+    !text: tr('Close')
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 80
+    @onClick: modules.game_rank_level.hide()
