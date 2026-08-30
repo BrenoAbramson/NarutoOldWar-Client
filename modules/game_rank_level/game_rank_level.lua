@@ -30,6 +30,10 @@ local function requestOnlinePlayers()
 end
 
 local function showRanking(payload)
+    if not rankWindow then
+        rankWindow = g_ui.displayUI('game_rank_level')
+        rankWindow:hide()
+    end
     local entries = rankWindow:getChildById('entries')
     entries:destroyChildren()
 
@@ -68,8 +72,6 @@ local function onExtendedOpcode(protocol, opcode, buffer)
 end
 
 function init()
-    rankWindow = g_ui.displayUI('game_rank_level')
-    rankWindow:hide()
     ProtocolGame.registerExtendedOpcode(OPCODE, onExtendedOpcode)
     connect(g_game, { onGameStart = requestOnlinePlayers, onGameEnd = onGameEnd })
     if g_game.isOnline() then

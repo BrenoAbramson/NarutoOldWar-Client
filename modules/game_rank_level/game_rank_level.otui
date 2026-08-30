@@ -83,7 +83,6 @@ MainWindow
     vertical-scrollbar: rankScroll
     layout:
       type: verticalBox
-      fit-children: true
 
   Button
     id: closeButton
