@@ -1,0 +1,258 @@
+BankHistoryRow < UIWidget
+  height: 22
+  focusable: false
+
+  Label
+    id: date
+    anchors.left: parent.left
+    anchors.verticalCenter: parent.verticalCenter
+    width: 92
+
+  Label
+    id: operation
+    anchors.left: prev.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 150
+    margin-left: 6
+
+  Label
+    id: amount
+    anchors.left: prev.right
+    anchors.verticalCenter: parent.verticalCenter
+    width: 110
+    margin-left: 6
+    text-align: right
+
+  Label
+    id: other
+    anchors.left: prev.right
+    anchors.right: parent.right
+    anchors.verticalCenter: parent.verticalCenter
+    margin-left: 10
+
+MainWindow
+  id: bankWindow
+  !text: tr('Sistema de Banco')
+  size: 590 520
+  @onEscape: modules.game_bank.hide()
+
+  Label
+    id: balanceTitle
+    anchors.top: parent.top
+    anchors.left: parent.left
+    text: Saldo disponivel
+
+  Label
+    id: balance
+    anchors.top: balanceTitle.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    width: 220
+    text: 0
+    font: verdana-11px-rounded
+    color: #57d957
+
+  Button
+    id: refreshButton
+    !text: tr('Atualizar')
+    anchors.top: parent.top
+    anchors.right: parent.right
+    width: 80
+    @onClick: modules.game_bank.refresh()
+
+  HorizontalSeparator
+    id: firstSeparator
+    anchors.top: balance.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 12
+
+  Label
+    id: depositLabel
+    anchors.top: firstSeparator.bottom
+    anchors.left: parent.left
+    margin-top: 10
+    text: Depositar
+
+  TextEdit
+    id: depositValue
+    anchors.top: depositLabel.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    width: 150
+    height: 24
+    max-length: 20
+
+  Button
+    id: depositButton
+    !text: tr('Depositar')
+    anchors.left: depositValue.right
+    anchors.verticalCenter: depositValue.verticalCenter
+    margin-left: 6
+    width: 86
+    @onClick: modules.game_bank.deposit()
+
+  Button
+    id: depositAllButton
+    !text: tr('Depositar tudo')
+    anchors.left: depositButton.right
+    anchors.verticalCenter: depositValue.verticalCenter
+    margin-left: 6
+    width: 110
+    @onClick: modules.game_bank.depositAll()
+
+  Label
+    id: withdrawLabel
+    anchors.top: firstSeparator.bottom
+    anchors.left: depositAllButton.right
+    margin-top: 10
+    margin-left: 18
+    text: Sacar
+
+  TextEdit
+    id: withdrawValue
+    anchors.top: withdrawLabel.bottom
+    anchors.left: withdrawLabel.left
+    margin-top: 4
+    width: 120
+    height: 24
+    max-length: 20
+
+  Button
+    id: withdrawButton
+    !text: tr('Sacar')
+    anchors.left: withdrawValue.right
+    anchors.verticalCenter: withdrawValue.verticalCenter
+    margin-left: 6
+    width: 70
+    @onClick: modules.game_bank.withdraw()
+
+  HorizontalSeparator
+    id: secondSeparator
+    anchors.top: depositValue.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 14
+
+  Label
+    id: transferLabel
+    anchors.top: secondSeparator.bottom
+    anchors.left: parent.left
+    margin-top: 10
+    text: Transferir para personagem
+
+  TextEdit
+    id: targetName
+    anchors.top: transferLabel.bottom
+    anchors.left: parent.left
+    margin-top: 4
+    width: 220
+    height: 24
+
+  TextEdit
+    id: transferValue
+    anchors.left: targetName.right
+    anchors.verticalCenter: targetName.verticalCenter
+    margin-left: 8
+    width: 150
+    height: 24
+    max-length: 20
+
+  Label
+    id: transferValueLabel
+    anchors.top: secondSeparator.bottom
+    anchors.left: transferValue.left
+    margin-top: 10
+    text: Valor
+
+  Button
+    id: transferButton
+    !text: tr('Transferir')
+    anchors.left: transferValue.right
+    anchors.verticalCenter: transferValue.verticalCenter
+    margin-left: 10
+    width: 86
+    @onClick: modules.game_bank.transfer()
+
+  Label
+    id: message
+    anchors.top: targetName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 8
+    height: 18
+    color: #d8c36a
+
+  Label
+    id: historyTitle
+    anchors.top: message.bottom
+    anchors.left: parent.left
+    margin-top: 8
+    text: Ultimas operacoes
+
+  Panel
+    id: historyHeader
+    anchors.top: historyTitle.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 5
+    height: 22
+    background-color: #232323
+
+    Label
+      anchors.left: parent.left
+      anchors.verticalCenter: parent.verticalCenter
+      width: 92
+      text: Data
+
+    Label
+      id: operationHeader
+      anchors.left: prev.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 150
+      margin-left: 6
+      text: Operacao
+
+    Label
+      anchors.left: prev.right
+      anchors.verticalCenter: parent.verticalCenter
+      width: 110
+      margin-left: 6
+      text: Valor
+      text-align: right
+
+    Label
+      anchors.left: prev.right
+      anchors.verticalCenter: parent.verticalCenter
+      margin-left: 10
+      text: Personagem
+
+  VerticalScrollBar
+    id: historyScroll
+    anchors.top: historyHeader.bottom
+    anchors.right: parent.right
+    anchors.bottom: closeButton.top
+    margin-top: 3
+    margin-bottom: 8
+    step: 22
+    pixels-scroll: true
+
+  ScrollablePanel
+    id: history
+    anchors.top: historyHeader.bottom
+    anchors.left: parent.left
+    anchors.right: historyScroll.left
+    anchors.bottom: closeButton.top
+    margin-top: 3
+    margin-bottom: 8
+    vertical-scrollbar: historyScroll
+    layout:
+      type: verticalBox
+
+  Button
+    id: closeButton
+    !text: tr('Fechar')
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    width: 80
+    @onClick: modules.game_bank.hide()

@@ -47,6 +47,7 @@ Module
     - game_notifications
     - game_highscore
     - game_rank_level
+    - game_bank
     - game_blessing
     - game_store
     - game_quickloot

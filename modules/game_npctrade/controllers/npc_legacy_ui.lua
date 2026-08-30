@@ -160,7 +160,10 @@ function onTradeClick()
         g_game.buyItem(selectedItem.ptr, quantityScroll:getValue(), ignoreCapacity:isChecked(),
                        buyWithBackpack:isChecked())
     else
-        g_game.sellItem(selectedItem.ptr, quantityScroll:getValue(), ignoreEquipped:isChecked())
+        local item, amount, ignore = selectedItem.ptr, quantityScroll:getValue(), ignoreEquipped:isChecked()
+        controllerNpcTrader:chooseSellDestination(function(destination)
+            controllerNpcTrader:sellWithDestination(destination, item, amount, ignore)
+        end)
     end
 end
 

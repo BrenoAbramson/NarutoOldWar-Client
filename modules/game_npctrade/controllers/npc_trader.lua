@@ -476,6 +476,30 @@ function controllerNpcTrader:refreshPlayerGoods(skipFilter)
     end
 end
 
+function controllerNpcTrader:sellWithDestination(destination, item, amount, ignoreEquipped)
+    local protocol = g_game.getProtocolGame()
+    if protocol then
+        protocol:sendExtendedOpcode(92, 'shopSale|' .. destination)
+        g_game.sellItem(item, amount, ignoreEquipped)
+    end
+end
+
+function controllerNpcTrader:chooseSellDestination(callback)
+    local choiceWindow
+    local function close()
+        if choiceWindow then choiceWindow:destroy() choiceWindow = nil end
+    end
+    local function choose(destination)
+        close()
+        callback(destination)
+    end
+    choiceWindow = displayGeneralBox('Destino da venda', 'Onde deseja receber o valor desta venda?', {
+        { text = 'Banco', callback = function() choose('bank') end },
+        { text = 'Bag', callback = function() choose('bag') end },
+        { text = 'Cancelar', callback = close }
+    }, nil, close)
+end
+
 function controllerNpcTrader:executeTrade()
     if not self.selectedItem then
         return
@@ -483,7 +507,10 @@ function controllerNpcTrader:executeTrade()
     if self.tradeMode == controllerNpcTrader.BUY then
         g_game.buyItem(self.selectedItem.ptr, self.amount, self.ignoreCapacity, self.buyWithBackpack)
     else
-        g_game.sellItem(self.selectedItem.ptr, self.amount, self.ignoreEquipped)
+        local item, amount, ignoreEquipped = self.selectedItem.ptr, self.amount, self.ignoreEquipped
+        self:chooseSellDestination(function(destination)
+            self:sellWithDestination(destination, item, amount, ignoreEquipped)
+        end)
     end
 end
 

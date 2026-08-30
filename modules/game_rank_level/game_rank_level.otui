@@ -27,7 +27,7 @@ RankLevelRow < UIWidget
 
 MainWindow
   id: rankLevelWindow
-  !text: tr('System Rank Level')
+  !text: tr('Sistema de Ranking Level - Top 100')
   size: 430 460
   @onEscape: modules.game_rank_level.hide()
 

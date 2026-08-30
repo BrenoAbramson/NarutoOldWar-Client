@@ -1,0 +1,8 @@
+Module
+  name: game_bank
+  description: Shared account bank
+  author: Naruto Old War
+  sandboxed: true
+  scripts: [ game_bank ]
+  @onLoad: init()
+  @onUnload: terminate()
