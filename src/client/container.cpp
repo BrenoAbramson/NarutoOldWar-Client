@@ -24,6 +24,13 @@
 
 #include "item.h"
 
+namespace {
+bool itemDiagnosticsEnabled()
+{
+    return g_game.getFeature(Otc::GameAllowCustomBotScripts);
+}
+}
+
 ItemPtr Container::getItem(const int slot)
 {
     if (slot < 0 || slot >= static_cast<int>(m_items.size()))
@@ -44,6 +51,7 @@ void Container::onClose()
 
 void Container::onAddItem(const ItemPtr& item, int slot)
 {
+    const int serverSlot = slot;
     slot -= m_firstIndex;
 
     // indicates that there is a new item on next page
@@ -64,6 +72,10 @@ void Container::onAddItem(const ItemPtr& item, int slot)
 
     callLuaField("onSizeChange", m_size);
     callLuaField("onAddItem", slot, item);
+
+    if (itemDiagnosticsEnabled())
+        g_logger.info("[ITEM-DIAG] applied container-add id={} serverSlot={} localSlot={} item={} count={} visibleItems={} size={}",
+            m_id, serverSlot, slot, item->getId(), item->getCount(), m_items.size(), m_size);
 }
 
 ItemPtr Container::findItemById(const uint32_t itemId, const int subType, const uint8_t tier) const
@@ -83,8 +95,12 @@ void Container::onAddItems(const std::vector<ItemPtr>& items)
 
 void Container::onUpdateItem(int slot, const ItemPtr& item)
 {
+    const int serverSlot = slot;
     slot -= m_firstIndex;
     if (slot < 0 || slot >= static_cast<int>(m_items.size())) {
+        if (itemDiagnosticsEnabled())
+            g_logger.error("[ITEM-DIAG] rejected container-update id={} serverSlot={} localSlot={} item={} visibleItems={} firstIndex={}",
+                m_id, serverSlot, slot, item->getId(), m_items.size(), m_firstIndex);
         g_logger.traceError("slot not found");
         return;
     }
@@ -94,10 +110,16 @@ void Container::onUpdateItem(int slot, const ItemPtr& item)
     item->setPosition(getSlotPosition(slot));
 
     callLuaField("onUpdateItem", slot, item, oldItem);
+
+    if (itemDiagnosticsEnabled())
+        g_logger.info("[ITEM-DIAG] applied container-update id={} serverSlot={} localSlot={} oldItem={} oldCount={} item={} count={} visibleItems={}",
+            m_id, serverSlot, slot, oldItem ? oldItem->getId() : 0, oldItem ? oldItem->getCount() : 0,
+            item->getId(), item->getCount(), m_items.size());
 }
 
 void Container::onRemoveItem(int slot, const ItemPtr& lastItem)
 {
+    const int serverSlot = slot;
     slot -= m_firstIndex;
 
     // indicates that there has been deleted an item on next page
@@ -107,6 +129,9 @@ void Container::onRemoveItem(int slot, const ItemPtr& lastItem)
     }
 
     if (slot < 0 || slot >= static_cast<int>(m_items.size())) {
+        if (itemDiagnosticsEnabled())
+            g_logger.error("[ITEM-DIAG] rejected container-remove id={} serverSlot={} localSlot={} visibleItems={} firstIndex={}",
+                m_id, serverSlot, slot, m_items.size(), m_firstIndex);
         g_logger.traceError("slot not found");
         return;
     }
@@ -125,6 +150,10 @@ void Container::onRemoveItem(int slot, const ItemPtr& lastItem)
 
     callLuaField("onSizeChange", m_size);
     callLuaField("onRemoveItem", slot, item);
+
+    if (itemDiagnosticsEnabled())
+        g_logger.info("[ITEM-DIAG] applied container-remove id={} serverSlot={} localSlot={} oldItem={} oldCount={} replacement={} visibleItems={} size={}",
+            m_id, serverSlot, slot, item->getId(), item->getCount(), lastItem ? lastItem->getId() : 0, m_items.size(), m_size);
 }
 
 void Container::updateItemsPositions()

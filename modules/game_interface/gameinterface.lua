@@ -47,6 +47,30 @@ local mobileConfig = {
 local isExtendedViewActive = false
 local HENGE_OPCODE = 90
 local hengeOriginal = {}
+local clientDiagnosticsEnabled = false
+local CLIENT_DIAGNOSTICS_SETTING = 'clientDiagnosticsEnabled'
+
+local function applyClientDiagnostics(enabled, notifyPlayer)
+    clientDiagnosticsEnabled = enabled
+    if clientDiagnosticsEnabled then
+        g_game.enableFeature(GameAllowCustomBotScripts)
+    else
+        g_game.disableFeature(GameAllowCustomBotScripts)
+    end
+
+    g_settings.set(CLIENT_DIAGNOSTICS_SETTING, clientDiagnosticsEnabled)
+    g_settings.save()
+
+    local state = clientDiagnosticsEnabled and 'ATIVADO' or 'DESATIVADO'
+    g_logger.info('[CLIENT-DIAG] ===== DIAGNOSTICO ' .. state .. ' =====')
+    if notifyPlayer and modules.game_textmessage then
+        modules.game_textmessage.displayStatusMessage('Diagnostico do cliente ' .. state .. ' (Ctrl+Shift+D)')
+    end
+end
+
+local function toggleClientDiagnostics()
+    applyClientDiagnostics(not clientDiagnosticsEnabled, true)
+end
 
 local function splitHengeBuffer(buffer)
     local parts = {}
@@ -152,6 +176,7 @@ local function applyMobileMargins()
 end
 
 function init()
+	applyClientDiagnostics(g_settings.getBoolean(CLIENT_DIAGNOSTICS_SETTING), false)
 	ProtocolGame.registerExtendedOpcode(HENGE_OPCODE, onHengeOpcode)
     g_ui.importStyle('styles/countwindow')
     g_ui.importStyle('styles/countStashWindow')
@@ -308,10 +333,15 @@ function bindKeys()
     }, gameRootPanel)
 
     g_keyboard.bindKeyDown('Ctrl+.', nextViewMode, gameRootPanel)
+    g_keyboard.bindKeyPress('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
 end
 
 function terminate()
 	ProtocolGame.unregisterExtendedOpcode(HENGE_OPCODE)
+    g_keyboard.unbindKeyPress('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
+    if clientDiagnosticsEnabled then
+        g_game.disableFeature(GameAllowCustomBotScripts)
+    end
     StatsBar.terminate()
 
     hide()

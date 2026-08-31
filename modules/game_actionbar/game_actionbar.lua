@@ -702,10 +702,15 @@ function onMultiUseCooldown(multiUseCooldown)
 end
 
 function updateInventoryItems(_)
+    local updatedWidgets = 0
     for _, widgetList in pairs(cachedItemWidget) do
         for _, widget in pairs(widgetList) do
             updateButtonState(widget)
+            updatedWidgets = updatedWidgets + 1
         end
+    end
+    if g_game.getFeature(GameAllowCustomBotScripts) then
+        g_logger.info(string.format('[HOTKEY-DIAG] inventory-refresh widgets=%d', updatedWidgets))
     end
 end
 

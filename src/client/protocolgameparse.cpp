@@ -1514,6 +1514,8 @@ void ProtocolGame::parseMapMoveWest(const InputMessagePtr& msg)
 void ProtocolGame::parseUpdateTile(const InputMessagePtr& msg)
 {
     const auto& tilePos = getPosition(msg);
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[TILE-DIAG] packet update-tile pos={}", tilePos.toString());
     setTileDescription(msg, tilePos);
 }
 
@@ -1522,6 +1524,10 @@ void ProtocolGame::parseTileAddThing(const InputMessagePtr& msg)
     const auto& pos = getPosition(msg);
     const int stackPos = g_game.getFeature(Otc::GameTileAddThingWithStackpos) ? msg->getU8() : -1;
     const auto& thing = getThing(msg);
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[TILE-DIAG] packet add pos={} requestedStack={} id={} creature={} priority={} block={}",
+            pos.toString(), stackPos, thing->getId(), thing->isCreature(), thing->getStackPriority(), thing->isNotWalkable());
 
     g_map.addThing(thing, pos, stackPos);
 }
@@ -1539,6 +1545,10 @@ void ProtocolGame::parseTileTransformThing(const InputMessagePtr& msg)
     const auto& pos = thing->getServerPosition();
     const int stackPos = thing->getStackPos();
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[TILE-DIAG] packet transform pos={} stack={} oldId={} newId={} creature={}",
+            pos.toString(), stackPos, thing->getId(), newThing->getId(), thing->isCreature());
+
     if (!g_map.removeThing(thing)) {
         g_logger.traceError("ProtocolGame::parseTileTransformThing: unable to remove thing");
         return;
@@ -1555,6 +1565,10 @@ void ProtocolGame::parseTileRemoveThing(const InputMessagePtr& msg) const
         return;
     }
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[TILE-DIAG] packet remove pos={} stack={} id={} creature={}",
+            thing->getServerPosition().toString(), thing->getStackPos(), thing->getId(), thing->isCreature());
+
     if (!g_map.removeThing(thing))
         g_logger.traceError("ProtocolGame::parseTileRemoveThing: unable to remove thing");
 }
@@ -1568,6 +1582,10 @@ void ProtocolGame::parseCreatureMove(const InputMessagePtr& msg)
         g_logger.traceError("ProtocolGame::parseCreatureMove: no creature found to move");
         return;
     }
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[TILE-DIAG] packet creature-move id={} from={} to={} stack={}",
+            thing->getId(), thing->getServerPosition().toString(), newPos.toString(), thing->getStackPos());
 
     if (!g_map.removeThing(thing)) {
         g_logger.traceError("ProtocolGame::parseCreatureMove: unable to remove creature");
@@ -1612,6 +1630,14 @@ void ProtocolGame::parseOpenContainer(const InputMessagePtr& msg)
         items.push_back(getItem(msg));
     }
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts)) {
+        std::ostringstream details;
+        for (size_t i = 0; i < items.size(); ++i)
+            details << " [" << i << " id=" << items[i]->getId() << " count=" << items[i]->getCount() << "]";
+        g_logger.info("[ITEM-DIAG] packet container-open id={} name='{}' capacity={} firstIndex={} size={} items={}{}",
+            containerId, name, capacity, firstIndex, containerSize, items.size(), details.str());
+    }
+
     if (g_game.getFeature(Otc::GameContainerFilter)) {
         msg->getU8(); // category
         const uint8_t categoriesSize = msg->getU8();
@@ -1632,6 +1658,8 @@ void ProtocolGame::parseOpenContainer(const InputMessagePtr& msg)
 void ProtocolGame::parseCloseContainer(const InputMessagePtr& msg)
 {
     const uint8_t containerId = msg->getU8();
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet container-close id={}", containerId);
     g_game.processCloseContainer(containerId);
 }
 
@@ -1641,6 +1669,9 @@ void ProtocolGame::parseContainerAddItem(const InputMessagePtr& msg)
     const uint16_t slot = g_game.getFeature(Otc::GameContainerPagination) ? msg->getU16() : 0;
     const auto& item = getItem(msg);
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet container-add id={} slot={} item={} count={}", containerId, slot, item->getId(), item->getCount());
+
     g_game.processContainerAddItem(containerId, item, slot);
 }
 
@@ -1649,6 +1680,9 @@ void ProtocolGame::parseContainerUpdateItem(const InputMessagePtr& msg)
     const uint8_t containerId = msg->getU8();
     const uint16_t slot = g_game.getFeature(Otc::GameContainerPagination) ? msg->getU16() : msg->getU8();
     const auto& item = getItem(msg);
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet container-update id={} slot={} item={} count={}", containerId, slot, item->getId(), item->getCount());
 
     g_game.processContainerUpdateItem(containerId, slot, item);
 }
@@ -1669,6 +1703,10 @@ void ProtocolGame::parseContainerRemoveItem(const InputMessagePtr& msg)
     } else {
         slot = msg->getU8();
     }
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet container-remove id={} slot={} replacement={} replacementCount={}",
+            containerId, slot, lastItem ? lastItem->getId() : 0, lastItem ? lastItem->getCount() : 0);
 
     g_game.processContainerRemoveItem(containerId, slot, lastItem);
 }
@@ -1786,12 +1824,17 @@ void ProtocolGame::parseAddInventoryItem(const InputMessagePtr& msg)
     const uint8_t slot = msg->getU8();
     const auto& item = getItem(msg);
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet inventory-set slot={} item={} count={}", slot, item->getId(), item->getCount());
+
     g_game.processInventoryChange(slot, item);
 }
 
 void ProtocolGame::parseRemoveInventoryItem(const InputMessagePtr& msg)
 {
     const uint8_t slot = msg->getU8();
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] packet inventory-remove slot={}", slot);
     g_game.processInventoryChange(slot, ItemPtr());
 }
 

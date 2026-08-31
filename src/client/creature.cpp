@@ -513,6 +513,15 @@ void Creature::walk(const Position& oldPos, const Position& newPos)
     if (oldPos == newPos)
         return;
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts)) {
+        const auto& oldTile = g_map.getTile(oldPos);
+        const auto& newTile = g_map.getTile(newPos);
+        g_logger.info("[TILE-DIAG] creature-walk id={} name='{}' from={} to={} oldThings={} newThings={} oldWalkable={} newWalkable={}",
+            getId(), getName(), oldPos.toString(), newPos.toString(),
+            oldTile ? oldTile->getThingCount() : -1, newTile ? newTile->getThingCount() : -1,
+            oldTile ? oldTile->isWalkable(true) : false, newTile ? newTile->isWalkable(true) : false);
+    }
+
     // get walk direction
     m_lastStepDirection = oldPos.getDirectionFromPosition(newPos);
     m_lastStepFromPosition = oldPos;
@@ -764,6 +773,14 @@ void Creature::updateWalkingTile()
     }
 
     if (newWalkingTile == m_walkingTile) return;
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts)) {
+        g_logger.info("[TILE-DIAG] walking-tile id={} name='{}' position={} fromTile={} toTile={} direction={} walkedPixels={}",
+            getId(), getName(), getPosition().toString(),
+            m_walkingTile ? m_walkingTile->getPosition().toString() : "none",
+            newWalkingTile ? newWalkingTile->getPosition().toString() : "none",
+            static_cast<int>(m_direction), m_walkedPixels);
+    }
 
     const auto& self = static_self_cast<Creature>();
 

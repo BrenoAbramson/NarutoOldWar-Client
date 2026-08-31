@@ -304,6 +304,15 @@ end
 --- Executes the action assigned to a button
 function onExecuteAction(button, isPress)
     local cache = getButtonCache(button)
+    if g_game.getFeature(GameAllowCustomBotScripts) then
+        local itemCount = 0
+        if player and cache.itemId and cache.itemId ~= 0 then
+            itemCount = player:getInventoryCount(cache.itemId, cache.upgradeTier or 0)
+        end
+        g_logger.info(string.format('[HOTKEY-DIAG] execute button=%s press=%s action=%s item=%s count=%s spell=%s param=%s',
+            button:getId(), tostring(isPress), tostring(cache.actionType), tostring(cache.itemId),
+            tostring(itemCount), tostring(cache.isSpell), tostring(cache.param)))
+    end
     if cache.lastClick > g_clock.millis() then
         return true
     end
@@ -923,6 +932,11 @@ function updateButton(button)
     end
 
     buttonData = ApiJson.getMapping(barIndex, buttonIndex)
+    if g_game.getFeature(GameAllowCustomBotScripts) then
+        local actionSetting = buttonData and buttonData["actionsetting"] or nil
+        g_logger.info(string.format('[HOTKEY-DIAG] button-update button=%s mapped=%s setting=%s',
+            button:getId(), tostring(buttonData ~= nil), tostring(actionSetting ~= nil)))
+    end
     
     local isClean = button.cache and button.cache.actionType == 0 and button.item:getItemId() == 0
     local hasNewData = buttonData and buttonData["actionsetting"]

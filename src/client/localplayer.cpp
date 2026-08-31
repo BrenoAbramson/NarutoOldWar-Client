@@ -468,6 +468,11 @@ void LocalPlayer::setInventoryItem(const Otc::InventorySlot inventory, const Ite
     const auto& oldItem = m_inventoryItems[inventory];
     m_inventoryItems[inventory] = item;
 
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ITEM-DIAG] applied inventory slot={} oldItem={} oldCount={} item={} count={}",
+            static_cast<int>(inventory), oldItem ? oldItem->getId() : 0, oldItem ? oldItem->getCount() : 0,
+            item ? item->getId() : 0, item ? item->getCount() : 0);
+
     if (item && g_game.getFeature(Otc::GameThingClock) && item->getDurationTime() > 0
             && item->getClothSlot() == static_cast<int>(inventory)){
         // expirestop-only items (e.g. toggled-off magic light wand) are paused

@@ -39,6 +39,40 @@
 
 Tile::Tile(const Position& position) : m_position(position) {}
 
+namespace {
+bool tileDiagnosticsEnabled()
+{
+    return g_game.getFeature(Otc::GameAllowCustomBotScripts);
+}
+
+void logTileDiagnostics(const char* phase, Tile* tile)
+{
+    if (!tileDiagnosticsEnabled() || !tile)
+        return;
+
+    std::ostringstream details;
+    const auto& things = tile->getThings();
+    for (size_t i = 0; i < things.size(); ++i) {
+        const auto& thing = things[i];
+        details << " [" << i
+                << " id=" << thing->getId()
+                << " stack=" << thing->getStackPos()
+                << " priority=" << thing->getStackPriority()
+                << " ground=" << thing->isGround()
+                << " border=" << thing->isGroundBorder()
+                << " bottom=" << thing->isOnBottom()
+                << " top=" << thing->isOnTop()
+                << " creature=" << thing->isCreature()
+                << " block=" << thing->isNotWalkable()
+                << "]";
+    }
+
+    g_logger.info("[TILE-DIAG] {} pos={} count={} walking={} walkable={} elevation={}{}",
+        phase, tile->getPosition().toString(), things.size(), tile->getWalkingCreatures().size(),
+        tile->isWalkable(true), tile->getDrawElevation(), details.str());
+}
+}
+
 void updateElevation(const ThingPtr& thing, uint8_t& drawElevation) {
     if (thing->hasElevation())
         drawElevation = std::min<uint8_t>(drawElevation + thing->getElevation(), g_gameConfig.getTileMaxElevation());
@@ -72,6 +106,16 @@ void Tile::draw(const MapPosInfo& mapRect, const Point& dest, const int flags, L
     m_lastDrawDest = dest;
 
     uint8_t drawElevation = 0;
+
+    if (tileDiagnosticsEnabled() && (hasWalkingCreature() || (hasCreatures() && !isWalkable(true)))) {
+        static std::unordered_map<Position, ticks_t, Position::Hasher> lastLogged;
+        const ticks_t now = g_clock.millis();
+        auto& last = lastLogged[m_position];
+        if (now - last >= 250) {
+            last = now;
+            logTileDiagnostics("draw", this);
+        }
+    }
 
     if (m_fill != Color::alpha) {
         g_drawPool.addFilledRect(Rect(dest, Size{ g_gameConfig.getSpriteSize() }), m_fill);
