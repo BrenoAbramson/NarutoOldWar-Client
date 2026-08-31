@@ -40,13 +40,30 @@ MainWindow
     id: balanceTitle
     anchors.top: parent.top
     anchors.left: parent.left
-    text: Saldo disponivel
+    text: Saldo no Banco:
 
   Label
     id: balance
+    anchors.left: balanceTitle.right
+    anchors.verticalCenter: balanceTitle.verticalCenter
+    margin-left: 5
+    width: 220
+    text: 0
+    font: verdana-11px-rounded
+    color: #57d957
+
+  Label
+    id: inventoryBalanceTitle
     anchors.top: balanceTitle.bottom
     anchors.left: parent.left
-    margin-top: 4
+    margin-top: 7
+    text: Saldo no Inventario:
+
+  Label
+    id: inventoryBalance
+    anchors.left: inventoryBalanceTitle.right
+    anchors.verticalCenter: inventoryBalanceTitle.verticalCenter
+    margin-left: 5
     width: 220
     text: 0
     font: verdana-11px-rounded
@@ -62,7 +79,7 @@ MainWindow
 
   HorizontalSeparator
     id: firstSeparator
-    anchors.top: balance.bottom
+    anchors.top: inventoryBalanceTitle.bottom
     anchors.left: parent.left
     anchors.right: parent.right
     margin-top: 12

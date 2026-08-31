@@ -209,8 +209,32 @@ MiniWindow
     SkillButton
       id: magiclevel
       SkillNameLabel
-        !text: tr('Magic Level')
+        text: Ninjutsu
       SkillValueLabel
+      ImageSkill
+        image-source: /images/icons/icon_magic
+        image-size: 9 9
+      SkillPercentPanel
+        background-color: red
+
+    SkillButton
+      id: taijutsu
+      SkillNameLabel
+        text: Taijutsu
+      SkillValueLabel
+        text: 1
+      ImageSkill
+        image-source: /images/icons/icon_fist
+        image-size: 9 9
+      SkillPercentPanel
+        background-color: red
+
+    SkillButton
+      id: genjutsu
+      SkillNameLabel
+        text: Genjutsu
+      SkillValueLabel
+        text: 1
       ImageSkill
         image-source: /images/icons/icon_magic
         image-size: 9 9

@@ -8,12 +8,14 @@ local function formatCompact(value)
 
     local groups = math.floor((#digits - 1) / 3)
     local wholeLength = #digits - groups * 3
-    local formatted = digits:sub(1, wholeLength)
+    local compact = digits:sub(1, wholeLength)
     local decimal = digits:sub(wholeLength + 1, wholeLength + 1)
     if decimal ~= '' and decimal ~= '0' then
-        formatted = formatted .. ',' .. decimal
+        compact = compact .. ',' .. decimal
     end
-    return formatted .. string.rep('k', groups)
+
+    local full = digits:reverse():gsub('(%d%d%d)', '%1.'):gsub('%.$', ''):reverse()
+    return full .. ' (' .. compact .. string.rep('k', groups) .. ')'
 end
 
 local function split(value, separator)
@@ -44,11 +46,20 @@ local function numericValue(widgetId)
     return text
 end
 
+local function clearFields()
+    if not bankWindow then return end
+    bankWindow:getChildById('depositValue'):setText('')
+    bankWindow:getChildById('withdrawValue'):setText('')
+    bankWindow:getChildById('targetName'):setText('')
+    bankWindow:getChildById('transferValue'):setText('')
+end
+
 local function showState(payload)
     if not bankWindow then
         bankWindow = g_ui.displayUI('game_bank')
         bankWindow:hide()
-        bankWindow:getChildById('balanceTitle'):setText('Saldo dispon\237vel')
+        bankWindow:getChildById('balanceTitle'):setText('Saldo no Banco:')
+        bankWindow:getChildById('inventoryBalanceTitle'):setText('Saldo no Invent\225rio:')
         bankWindow:getChildById('historyTitle'):setText('\218ltimas opera\231\245es')
         bankWindow:recursiveGetChildById('operationHeader'):setText('Opera\231\227o')
         bankWindow:getChildById('depositValue'):setValidCharacters('0123456789')
@@ -58,11 +69,12 @@ local function showState(payload)
 
     local fields = split(payload, '|')
     bankWindow:getChildById('balance'):setText(formatCompact(fields[1]))
-    bankWindow:getChildById('message'):setText(fields[2] or '')
+    bankWindow:getChildById('inventoryBalance'):setText(formatCompact(fields[2]))
+    bankWindow:getChildById('message'):setText(fields[3] or '')
 
     local history = bankWindow:getChildById('history')
     history:destroyChildren()
-    for _, line in ipairs(split(fields[3] or '', '\n')) do
+    for _, line in ipairs(split(fields[4] or '', '\n')) do
         if line ~= '' then
             local entry = split(line, '\t')
             if #entry >= 3 then
@@ -101,28 +113,42 @@ function onGameEnd()
 end
 
 function hide()
-    if bankWindow then bankWindow:hide() end
+    if bankWindow then
+        clearFields()
+        bankWindow:hide()
+    end
 end
 
 function deposit()
     local amount = numericValue('depositValue')
-    if amount then send('deposit|' .. amount) end
+    if amount then
+        send('deposit|' .. amount)
+        bankWindow:getChildById('depositValue'):setText('')
+    end
 end
 
 function depositAll()
     send('depositAll')
+    if bankWindow then bankWindow:getChildById('depositValue'):setText('') end
 end
 
 function withdraw()
     local amount = numericValue('withdrawValue')
-    if amount then send('withdraw|' .. amount) end
+    if amount then
+        send('withdraw|' .. amount)
+        bankWindow:getChildById('withdrawValue'):setText('')
+    end
 end
 
 function transfer()
     if not bankWindow then return end
     local name = bankWindow:getChildById('targetName'):getText():gsub('|', ' ')
     local amount = numericValue('transferValue')
-    if name ~= '' and amount then send('transfer|' .. name .. '|' .. amount) end
+    if name ~= '' and amount then
+        send('transfer|' .. name .. '|' .. amount)
+        bankWindow:getChildById('targetName'):setText('')
+        bankWindow:getChildById('transferValue'):setText('')
+    end
 end
 
 function refresh()

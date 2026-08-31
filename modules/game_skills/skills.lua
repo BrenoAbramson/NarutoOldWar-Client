@@ -5,6 +5,24 @@ skillsButton = nil
 skillsSettings = nil
 local ExpRating = {}
 local smallSkillsCache = {}
+local SPECIALIZATIONS_OPCODE = 93
+
+local function onSpecializationsOpcode(protocol, opcode, buffer)
+    local values = {}
+    for value in buffer:gmatch('[^|]+') do
+        table.insert(values, tonumber(value) or 0)
+    end
+    if #values < 6 or not skillsWindow then
+        return
+    end
+
+    setSkillValue('magiclevel', values[1])
+    setSkillPercent('magiclevel', values[2], tr('You have %s percent to go', 100 - values[2]))
+    setSkillValue('taijutsu', values[3])
+    setSkillPercent('taijutsu', values[4], tr('You have %s percent to go', 100 - values[4]))
+    setSkillValue('genjutsu', values[5])
+    setSkillPercent('genjutsu', values[6], tr('You have %s percent to go', 100 - values[6]))
+end
 
 -- Cache for stats data when UI elements are hidden
 local statsCache = {
@@ -73,6 +91,7 @@ local function setupUIButtons()
 end
 
 function skillController:onInit()
+	skillController:registerExtendedOpcode(SPECIALIZATIONS_OPCODE, onSpecializationsOpcode)
     skillController:registerEvents(LocalPlayer, {
         onExperienceChange = onExperienceChange,
         onLevelChange = onLevelChange,
@@ -150,7 +169,7 @@ local SKILL_GROUPS = {
         'momentum', 'transcendence', 'amplification'
     },
     individual = {
-        'level', 'stamina', 'offlineTraining', 'magiclevel', 'skillId0', 'skillId1', 
+        'level', 'stamina', 'offlineTraining', 'magiclevel', 'taijutsu', 'genjutsu', 'skillId0', 'skillId1',
         'skillId2', 'skillId3', 'skillId4', 'skillId5', 'skillId6'
     },
     GameAdditionalSkills = {
