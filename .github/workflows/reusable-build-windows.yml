@@ -240,9 +240,31 @@ jobs:
             Write-Host "No binary cache push summary found; assuming no package was built for upload."
           }
 
+      - name: Prepare release artifact (Solution)
+        if: matrix.type == 'Solution'
+        shell: pwsh
+        run: |
+          $source = Join-Path (Get-Location) "artifacts/${{ matrix.configuration }}/otclient_dx_x64.exe"
+          $releaseDir = Join-Path (Get-Location) "release-artifacts/${{ matrix.configuration }}"
+
+          if (-not (Test-Path -Path $source -PathType Leaf)) {
+            throw "Required Windows executable was not generated: $source"
+          }
+
+          New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
+          Copy-Item -Path $source -Destination $releaseDir
+
+          $unexpected = Get-ChildItem -Path $releaseDir -File |
+            Where-Object { $_.Extension -in @('.pdb', '.exp', '.lib') -or $_.Name -like '._*' }
+          if ($unexpected) {
+            $unexpected | ForEach-Object { Write-Error "Forbidden release artifact: $($_.Name)" }
+            throw "Windows release artifact contains forbidden files"
+          }
+
       - name: Upload artifacts (Solution)
         if: matrix.type == 'Solution'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: artifacts/${{ matrix.configuration }}/
+          path: release-artifacts/${{ matrix.configuration }}/
+          if-no-files-found: error

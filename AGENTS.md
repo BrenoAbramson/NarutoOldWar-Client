@@ -34,3 +34,7 @@ Reference: `docs/client-assets-auto-install.md`
 4. Do not create or publish a Release, update launcher manifests, or deploy an update merely because a build completed. Wait for explicit user approval.
 5. A local macOS build is only allowed when the user explicitly requests a local build. Local builds are not the default official release process.
 6. Keep official builds on standard runners while the repository is public. Do not switch to larger or paid runners without explicit approval.
+7. Windows build artifacts and Release ZIPs must use an explicit allowlist. Upload only the runtime executable and required runtime resources; never include `.pdb`, `.exp`, `.lib`, `._*`, or `__MACOSX` entries.
+8. `meta.lua` is a required runtime client file and must not be confused with operating-system metadata.
+9. Before triggering an official build, confirm that its artifact staging step uploads from a filtered release directory rather than directly from the compiler output directory.
+10. Before publishing any Release, inspect both ZIP entry lists and fail the publication if Windows or macOS contains AppleDouble entries, `__MACOSX`, or compiler-only Windows files.
