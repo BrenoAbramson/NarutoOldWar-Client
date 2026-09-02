@@ -2,6 +2,17 @@ name: Build Client Windows and macOS
 
 on:
   workflow_dispatch:
+    inputs:
+      build_windows:
+        description: Build Windows client
+        required: true
+        type: boolean
+        default: true
+      build_macos:
+        description: Build macOS client
+        required: true
+        type: boolean
+        default: true
 
 permissions:
   contents: read
@@ -11,10 +22,12 @@ permissions:
 jobs:
   windows:
     name: Client Windows
+    if: ${{ inputs.build_windows }}
     uses: ./.github/workflows/reusable-build-windows.yml
     secrets: inherit
 
   macos:
     name: Client macOS
+    if: ${{ inputs.build_macos }}
     uses: ./.github/workflows/reusable-build-macos.yml
     secrets: inherit
