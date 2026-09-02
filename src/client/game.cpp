@@ -168,6 +168,9 @@ void Game::processEnterGame()
 void Game::processGameStart()
 {
     m_online = true;
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[SESSION-DIAG] game-start character='{}' world='{}' protocol={} client={}",
+            m_characterName, m_worldName, m_protocolVersion, m_clientVersion);
     g_app.resetTargetFps();
 
     // synchronize fight modes with the server
@@ -192,6 +195,9 @@ void Game::processGameStart()
 
 void Game::processGameEnd()
 {
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[SESSION-DIAG] game-end character='{}' world='{}'", m_characterName, m_worldName);
+
     // FPS fixed at 60 for when UI is rendering alone.
     g_app.setTargetFps(60u);
 
@@ -673,6 +679,9 @@ bool Game::walk(const Otc::Direction direction)
     if (!canPerformGameAction() || direction == Otc::InvalidDirection)
         return false;
 
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] request type=manual direction={} position={}", static_cast<int>(direction), m_localPlayer->getPosition().toString());
+
     g_lua.callGlobalField("g_game", "onWalk", direction);
 
     forceWalk(direction);
@@ -693,6 +702,10 @@ void Game::autoWalk(const std::vector<Otc::Direction>& dirs, const Position& sta
         g_logger.error("Auto walk path too great");
         return;
     }
+
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] request type=autowalk start={} steps={} firstDirection={}",
+            startPos.toString(), dirs.size(), static_cast<int>(*dirs.begin()));
 
     // must cancel follow before any new walk
     if (isFollowing()) {
@@ -807,6 +820,11 @@ void Game::move(const ThingPtr& thing, const Position& toPos, int count)
     if (!canPerformGameAction() || !thing || thing->getPosition() == toPos)
         return;
 
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ACTION-DIAG] move id={} creature={} count={} from={} stack={} to={}",
+            thing->getId(), thing->isCreature(), count, thing->getPosition().toString(),
+            thing->getStackPos(), toPos.toString());
+
     const auto thingId = thing->isCreature() ? static_cast<int>(Proto::Creature) : thing->getId();
     m_protocolGame->sendMove(thing->getPosition(), thingId, thing->getStackPos(), toPos, count);
 }
@@ -841,6 +859,10 @@ void Game::use(const ThingPtr& thing)
     if (!canPerformGameAction() || !thing)
         return;
 
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ACTION-DIAG] use id={} position={} stack={}", thing->getId(),
+            thing->getPosition().toString(), thing->getStackPos());
+
     Position pos = thing->getPosition();
     if (!pos.isValid()) // virtual item
         pos = Position(0xFFFF, 0, 0); // inventory item
@@ -857,6 +879,9 @@ void Game::useInventoryItem(const uint16_t itemId)
     if (!canPerformGameAction() || !g_things.isValidDatId(itemId, ThingCategoryItem))
         return;
 
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ACTION-DIAG] use-inventory id={}", itemId);
+
     const auto& pos = Position(0xFFFF, 0, 0); // means that is a item in inventory
     m_protocolGame->sendUseItem(pos, itemId, 0, 0);
 
@@ -867,6 +892,11 @@ void Game::useWith(const ItemPtr& item, const ThingPtr& toThing)
 {
     if (!canPerformGameAction() || !item || !toThing)
         return;
+
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[ACTION-DIAG] use-with item={} from={} target={} targetCreature={} targetPos={}",
+            item->getId(), item->getPosition().toString(), toThing->getId(), toThing->isCreature(),
+            toThing->getPosition().toString());
 
     Position pos = item->getPosition();
     if (!pos.isValid()) // virtual item
@@ -976,6 +1006,10 @@ void Game::attack(CreaturePtr creature)
     if (creature && creature == m_attackingCreature)
         creature = nullptr;
 
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[COMBAT-DIAG] attack target={} name='{}' position={}", creature ? creature->getId() : 0,
+            creature ? creature->getName() : std::string{}, creature ? creature->getPosition().toString() : std::string{ "none" });
+
     if (creature && isFollowing())
         cancelFollow();
 
@@ -999,6 +1033,10 @@ void Game::follow(CreaturePtr creature)
     // cancel when following again
     if (creature && creature == m_followingCreature)
         creature = nullptr;
+
+    if (getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] follow target={} name='{}' position={}", creature ? creature->getId() : 0,
+            creature ? creature->getName() : std::string{}, creature ? creature->getPosition().toString() : std::string{ "none" });
 
     if (creature && isAttacking())
         cancelAttack();

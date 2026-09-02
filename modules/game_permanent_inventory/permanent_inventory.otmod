@@ -1,0 +1,8 @@
+Module
+  name: game_permanent_inventory
+  description: Permanent account inventory
+  author: Naruto Old War
+  sandboxed: true
+  scripts: [ permanent_inventory ]
+  @onLoad: init()
+  @onUnload: terminate()

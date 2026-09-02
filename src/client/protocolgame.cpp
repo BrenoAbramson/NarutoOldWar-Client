@@ -44,6 +44,9 @@ void ProtocolGame::login(const std::string_view accountName, const std::string_v
 
 void ProtocolGame::onConnect()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[CONNECTION-DIAG] connected protocol={} client={}", g_game.getProtocolVersion(), g_game.getClientVersion());
+
     m_firstRecv = true;
     Protocol::onConnect();
 
@@ -62,6 +65,10 @@ void ProtocolGame::onRecv(const InputMessagePtr& inputMessage)
 {
     m_recivedPackeds += 1;
     m_recivedPackedsSize += inputMessage->getMessageSize();
+
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[PROTOCOL-DIAG] recv packet={} bytes={} unread={}", m_recivedPackeds,
+            inputMessage->getMessageSize(), inputMessage->getUnreadSize());
 
     if (m_firstRecv) {
         m_firstRecv = false;
@@ -83,6 +90,8 @@ void ProtocolGame::onRecv(const InputMessagePtr& inputMessage)
 
 void ProtocolGame::onError(const std::error_code& error)
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.error("[CONNECTION-DIAG] error code={} message='{}'", error.value(), error.message());
     g_game.processConnectionError(error);
     disconnect();
 }

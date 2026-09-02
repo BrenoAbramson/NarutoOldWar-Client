@@ -124,7 +124,9 @@ void Container::onRemoveItem(int slot, const ItemPtr& lastItem)
 
     // indicates that there has been deleted an item on next page
     if (m_hasPages && slot >= static_cast<int>(m_items.size())) {
-        callLuaField("onSizeChange", --m_size);
+        if (m_size > 0)
+            --m_size;
+        callLuaField("onSizeChange", m_size);
         return;
     }
 
@@ -141,10 +143,12 @@ void Container::onRemoveItem(int slot, const ItemPtr& lastItem)
 
     if (lastItem) {
         onAddItem(lastItem, m_firstIndex + m_capacity - 1);
-        --m_size;
+        if (m_size > 0)
+            --m_size;
     }
 
-    --m_size;
+    if (m_size > 0)
+        --m_size;
 
     updateItemsPositions();
 

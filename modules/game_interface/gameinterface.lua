@@ -49,6 +49,27 @@ local HENGE_OPCODE = 90
 local hengeOriginal = {}
 local clientDiagnosticsEnabled = false
 local CLIENT_DIAGNOSTICS_SETTING = 'clientDiagnosticsEnabled'
+local diagnosticsSnapshotEvent = nil
+
+local function logDiagnosticsSnapshot()
+    if not clientDiagnosticsEnabled or not g_game.isOnline() then return end
+
+    local player = g_game.getLocalPlayer()
+    if not player then return end
+
+    local position = player:getPosition()
+    local containerCount = 0
+    for _ in pairs(g_game.getContainers()) do containerCount = containerCount + 1 end
+
+    local attacking = g_game.getAttackingCreature()
+    local following = g_game.getFollowingCreature()
+    g_logger.info(string.format(
+        '[PERFORMANCE-DIAG] fps=%s ping=%s position=%s,%s,%s health=%s/%s mana=%s/%s containers=%s attack=%s follow=%s',
+        tostring(g_app.getFps()), tostring(g_game.getPing()), tostring(position.x), tostring(position.y),
+        tostring(position.z), tostring(player:getHealth()), tostring(player:getMaxHealth()),
+        tostring(player:getMana()), tostring(player:getMaxMana()), tostring(containerCount),
+        tostring(attacking and attacking:getId() or 0), tostring(following and following:getId() or 0)))
+end
 
 local function applyClientDiagnostics(enabled, notifyPlayer)
     clientDiagnosticsEnabled = enabled
@@ -177,6 +198,7 @@ end
 
 function init()
 	applyClientDiagnostics(g_settings.getBoolean(CLIENT_DIAGNOSTICS_SETTING), false)
+	diagnosticsSnapshotEvent = cycleEvent(logDiagnosticsSnapshot, 5000)
 	ProtocolGame.registerExtendedOpcode(HENGE_OPCODE, onHengeOpcode)
     g_ui.importStyle('styles/countwindow')
     g_ui.importStyle('styles/countStashWindow')
@@ -333,12 +355,16 @@ function bindKeys()
     }, gameRootPanel)
 
     g_keyboard.bindKeyDown('Ctrl+.', nextViewMode, gameRootPanel)
-    g_keyboard.bindKeyPress('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
+    g_keyboard.bindKeyDown('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
 end
 
 function terminate()
 	ProtocolGame.unregisterExtendedOpcode(HENGE_OPCODE)
-    g_keyboard.unbindKeyPress('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
+    if diagnosticsSnapshotEvent then
+        removeEvent(diagnosticsSnapshotEvent)
+        diagnosticsSnapshotEvent = nil
+    end
+    g_keyboard.unbindKeyDown('Ctrl+Shift+D', toggleClientDiagnostics, gameRootPanel)
     if clientDiagnosticsEnabled then
         g_game.disableFeature(GameAllowCustomBotScripts)
     end

@@ -189,6 +189,7 @@ private:
 
     std::unique_ptr<StaticText> m_timerText;
     std::unique_ptr<StaticText> m_text;
+    std::string m_lastDiagnosticState;
     Color m_fill = Color::alpha;
     ticks_t m_timer = 0;
 

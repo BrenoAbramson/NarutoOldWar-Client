@@ -35,6 +35,7 @@
 
 #include <spdlog/logger.h>
 #include <spdlog/sinks/basic_file_sink.h>
+#include <spdlog/sinks/rotating_file_sink.h>
 #include <spdlog/sinks/sink.h>
 #include <spdlog/sinks/stdout_color_sinks.h>
 #include <spdlog/spdlog.h>
@@ -248,7 +249,10 @@ void Logger::setLogFile(const std::string_view file)
     auto& spdLogger = getSpdLogger();
     if (spdLogger) {
         try {
-            auto fileSink = std::make_shared<spdlog::sinks::basic_file_sink_mt>(stdext::utf8_to_latin1(file), true);
+            constexpr std::size_t maxLogSize = 20 * 1024 * 1024;
+            constexpr std::size_t maxLogFiles = 5;
+            auto fileSink = std::make_shared<spdlog::sinks::rotating_file_sink_mt>(
+                stdext::utf8_to_latin1(file), maxLogSize, maxLogFiles, false);
             fileSink->set_pattern(std::string{ getFilePattern() });
 
             auto& currentLogFileSink = getSpdLogFileSink();

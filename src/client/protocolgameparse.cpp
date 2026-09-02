@@ -52,6 +52,9 @@ void ProtocolGame::parseMessage(const InputMessagePtr& msg)
     try {
         while (!msg->eof()) {
             opcode = msg->getU8();
+            if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+                g_logger.info("[PROTOCOL-DIAG] parse opcode=0x{:02X} ({}) readPos={} unread={}",
+                    opcode, opcode, msg->getReadPos(), msg->getUnreadSize());
             AutoStat s(STATS_PACKETS, fmt::format("{} (0x{:02X})", opcode, opcode));
 
             // must be > so extended will be enabled before GameStart.
@@ -1629,6 +1632,9 @@ void ProtocolGame::parseOpenContainer(const InputMessagePtr& msg)
     for (auto i = 0; i < itemCount; i++) {
         items.push_back(getItem(msg));
     }
+
+    if (!g_game.getFeature(Otc::GameContainerPagination))
+        containerSize = static_cast<uint16_t>(items.size());
 
     if (g_game.getFeature(Otc::GameAllowCustomBotScripts)) {
         std::ostringstream details;
@@ -3869,6 +3875,10 @@ void ProtocolGame::parseExtendedOpcode(const InputMessagePtr& msg)
 
     if (opcode == 0) {
         m_enableSendExtendedOpcode = true;
+        const auto pendingOpcodes = std::move(m_pendingExtendedOpcodes);
+        m_pendingExtendedOpcodes.clear();
+        for (const auto& [pendingOpcode, pendingBuffer] : pendingOpcodes)
+            sendExtendedOpcode(pendingOpcode, pendingBuffer);
     } else if (opcode == 2) {
         parsePingBack(msg);
     } else {

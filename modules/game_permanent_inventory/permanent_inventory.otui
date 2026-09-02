@@ -1,0 +1,75 @@
+MainWindow
+  id: permanentInventoryActions
+  !text: tr('Organizar inventario')
+  size: 300 220
+  @onEscape: modules.game_permanent_inventory.closeActions()
+
+  Button
+    id: sortName
+    anchors.top: parent.top
+    anchors.left: parent.left
+    anchors.right: parent.right
+    height: 25
+    !text: tr('Ordenar por nome')
+    @onClick: modules.game_permanent_inventory.sortByName()
+
+  Button
+    id: sortType
+    anchors.top: sortName.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 7
+    height: 25
+    !text: tr('Ordenar por tipo')
+    @onClick: modules.game_permanent_inventory.sortByType()
+
+  HorizontalSeparator
+    id: storageSeparator
+    anchors.top: sortType.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 10
+
+  Button
+    id: depotOne
+    anchors.top: storageSeparator.bottom
+    anchors.left: parent.left
+    margin-top: 10
+    width: 88
+    !text: tr('Deposito 1')
+    @onClick: modules.game_permanent_inventory.openDepot(1)
+
+  Button
+    id: depotTwo
+    anchors.left: depotOne.right
+    anchors.verticalCenter: depotOne.verticalCenter
+    margin-left: 6
+    width: 88
+    !text: tr('Deposito 2')
+    @onClick: modules.game_permanent_inventory.openDepot(2)
+
+  Button
+    id: depotThree
+    anchors.left: depotTwo.right
+    anchors.verticalCenter: depotOne.verticalCenter
+    margin-left: 6
+    width: 88
+    !text: tr('Deposito 3')
+    @onClick: modules.game_permanent_inventory.openDepot(3)
+
+  Button
+    id: delivery
+    anchors.top: depotOne.bottom
+    anchors.left: parent.left
+    anchors.right: parent.right
+    margin-top: 7
+    !text: tr('Entrega')
+    @onClick: modules.game_permanent_inventory.openDelivery()
+
+  Button
+    id: closeButton
+    anchors.bottom: parent.bottom
+    anchors.horizontalCenter: parent.horizontalCenter
+    width: 80
+    !text: tr('Fechar')
+    @onClick: modules.game_permanent_inventory.closeActions()

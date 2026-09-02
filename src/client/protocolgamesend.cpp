@@ -36,15 +36,16 @@
 void ProtocolGame::onSend() {}
 void ProtocolGame::sendExtendedOpcode(const uint8_t opcode, const std::string& buffer)
 {
-    if (m_enableSendExtendedOpcode) {
-        const auto& msg = std::make_shared<OutputMessage>();
-        msg->addU8(Proto::ClientExtendedOpcode);
-        msg->addU8(opcode);
-        msg->addString(buffer);
-        send(msg);
-    } else {
-        g_logger.error("Unable to send extended opcode {}, extended opcodes are not enabled", opcode);
+    if (!m_enableSendExtendedOpcode) {
+        m_pendingExtendedOpcodes.emplace_back(opcode, buffer);
+        return;
     }
+
+    const auto& msg = std::make_shared<OutputMessage>();
+    msg->addU8(Proto::ClientExtendedOpcode);
+    msg->addU8(opcode);
+    msg->addString(buffer);
+    send(msg);
 }
 
 void ProtocolGame::sendLoginPacket(const uint32_t challengeTimestamp, const uint8_t challengeRandom)
@@ -167,6 +168,9 @@ void ProtocolGame::sendPingBack()
 
 void ProtocolGame::sendAutoWalk(const std::vector<Otc::Direction>& path)
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=autowalk steps={} firstDirection={}", path.size(), path.empty() ? -1 : static_cast<int>(path.front()));
+
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientAutoWalk);
     msg->addU8(path.size());
@@ -208,6 +212,8 @@ void ProtocolGame::sendAutoWalk(const std::vector<Otc::Direction>& path)
 
 void ProtocolGame::sendWalkNorth()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::North));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkNorth);
     send(msg);
@@ -215,6 +221,8 @@ void ProtocolGame::sendWalkNorth()
 
 void ProtocolGame::sendWalkEast()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::East));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkEast);
     send(msg);
@@ -222,6 +230,8 @@ void ProtocolGame::sendWalkEast()
 
 void ProtocolGame::sendWalkSouth()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::South));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkSouth);
     send(msg);
@@ -229,6 +239,8 @@ void ProtocolGame::sendWalkSouth()
 
 void ProtocolGame::sendWalkWest()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::West));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkWest);
     send(msg);
@@ -236,6 +248,8 @@ void ProtocolGame::sendWalkWest()
 
 void ProtocolGame::sendStop()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=stop");
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientStop);
     send(msg);
@@ -243,6 +257,8 @@ void ProtocolGame::sendStop()
 
 void ProtocolGame::sendWalkNorthEast()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::NorthEast));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkNorthEast);
     send(msg);
@@ -250,6 +266,8 @@ void ProtocolGame::sendWalkNorthEast()
 
 void ProtocolGame::sendWalkSouthEast()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::SouthEast));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkSouthEast);
     send(msg);
@@ -257,6 +275,8 @@ void ProtocolGame::sendWalkSouthEast()
 
 void ProtocolGame::sendWalkSouthWest()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::SouthWest));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkSouthWest);
     send(msg);
@@ -264,6 +284,8 @@ void ProtocolGame::sendWalkSouthWest()
 
 void ProtocolGame::sendWalkNorthWest()
 {
+    if (g_game.getFeature(Otc::GameAllowCustomBotScripts))
+        g_logger.info("[MOVE-DIAG] send type=manual direction={}", static_cast<int>(Otc::NorthWest));
     const auto& msg = std::make_shared<OutputMessage>();
     msg->addU8(Proto::ClientWalkNorthWest);
     send(msg);

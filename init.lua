@@ -24,7 +24,7 @@ Services = {
 }
 
 -- Single source of truth for the version shown by runtime-loaded client resources.
-CLIENT_RELEASE_VERSION = "1.0.30"
+CLIENT_RELEASE_VERSION = "1.0.31"
 
 --- Enables or disables the entire server configuration block.
 -- Set to `false` to disable all configuration below.

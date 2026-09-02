@@ -304,15 +304,6 @@ end
 --- Executes the action assigned to a button
 function onExecuteAction(button, isPress)
     local cache = getButtonCache(button)
-    if g_game.getFeature(GameAllowCustomBotScripts) then
-        local itemCount = 0
-        if player and cache.itemId and cache.itemId ~= 0 then
-            itemCount = player:getInventoryCount(cache.itemId, cache.upgradeTier or 0)
-        end
-        g_logger.info(string.format('[HOTKEY-DIAG] execute button=%s press=%s action=%s item=%s count=%s spell=%s param=%s',
-            button:getId(), tostring(isPress), tostring(cache.actionType), tostring(cache.itemId),
-            tostring(itemCount), tostring(cache.isSpell), tostring(cache.param)))
-    end
     if cache.lastClick > g_clock.millis() then
         return true
     end
@@ -334,6 +325,17 @@ function onExecuteAction(button, isPress)
     local action = button.cache.actionType
     if action == 0 then
         return true
+    end
+
+    if g_game.getFeature(GameAllowCustomBotScripts) then
+        local itemCount = 0
+        if player and cache.itemId and cache.itemId ~= 0 then
+            itemCount = player:getInventoryCount(cache.itemId, cache.upgradeTier or 0)
+        end
+        local source = isPress == nil and 'mouse' or (isPress and 'repeat' or 'keydown')
+        g_logger.info(string.format('[HOTKEY-DIAG] accepted button=%s source=%s action=%s item=%s count=%s spell=%s param=%s',
+            button:getId(), source, tostring(cache.actionType), tostring(cache.itemId),
+            tostring(itemCount), tostring(cache.isSpell), tostring(cache.param)))
     end
 
     if action == UseTypes["Equip"] and button.item then

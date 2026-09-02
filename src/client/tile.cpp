@@ -45,11 +45,8 @@ bool tileDiagnosticsEnabled()
     return g_game.getFeature(Otc::GameAllowCustomBotScripts);
 }
 
-void logTileDiagnostics(const char* phase, Tile* tile)
+std::string buildTileDiagnosticState(Tile* tile)
 {
-    if (!tileDiagnosticsEnabled() || !tile)
-        return;
-
     std::ostringstream details;
     const auto& things = tile->getThings();
     for (size_t i = 0; i < things.size(); ++i) {
@@ -67,9 +64,9 @@ void logTileDiagnostics(const char* phase, Tile* tile)
                 << "]";
     }
 
-    g_logger.info("[TILE-DIAG] {} pos={} count={} walking={} walkable={} elevation={}{}",
-        phase, tile->getPosition().toString(), things.size(), tile->getWalkingCreatures().size(),
-        tile->isWalkable(true), tile->getDrawElevation(), details.str());
+    return fmt::format("count={} walking={} walkable={} elevation={}{}",
+        things.size(), tile->getWalkingCreatures().size(), tile->isWalkable(true),
+        tile->getDrawElevation(), details.str());
 }
 }
 
@@ -108,13 +105,13 @@ void Tile::draw(const MapPosInfo& mapRect, const Point& dest, const int flags, L
     uint8_t drawElevation = 0;
 
     if (tileDiagnosticsEnabled() && (hasWalkingCreature() || (hasCreatures() && !isWalkable(true)))) {
-        static std::unordered_map<Position, ticks_t, Position::Hasher> lastLogged;
-        const ticks_t now = g_clock.millis();
-        auto& last = lastLogged[m_position];
-        if (now - last >= 250) {
-            last = now;
-            logTileDiagnostics("draw", this);
+        const auto state = buildTileDiagnosticState(this);
+        if (state != m_lastDiagnosticState) {
+            m_lastDiagnosticState = state;
+            g_logger.info("[TILE-DIAG] draw pos={} {}", m_position.toString(), state);
         }
+    } else {
+        m_lastDiagnosticState.clear();
     }
 
     if (m_fill != Color::alpha) {

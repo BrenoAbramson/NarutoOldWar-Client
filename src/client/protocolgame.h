@@ -26,6 +26,9 @@
 #include "framework/net/protocol.h"
 #include "staticdata.h"
 
+#include <utility>
+#include <vector>
+
 class ProtocolGame final : public Protocol
 {
 public:
@@ -472,6 +475,7 @@ private:
     PaperdollPtr getPaperdoll(const InputMessagePtr& msg) const;
 
     bool m_enableSendExtendedOpcode{ false };
+    std::vector<std::pair<uint8_t, std::string>> m_pendingExtendedOpcodes;
     bool m_gameInitialized{ false };
     bool m_mapKnown{ false };
     bool m_firstRecv{ true };
