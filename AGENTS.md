@@ -26,3 +26,11 @@ Any change touching client-assets auto-installation must preserve the runtime co
 
 Reference: `docs/client-assets-auto-install.md`
 
+## Official Desktop Builds and Releases
+
+1. Official Windows and macOS client builds must run through GitHub Actions using standard GitHub-hosted runners.
+2. Windows and macOS builds must be triggerable separately. Do not start a platform build unless the user requested it.
+3. After triggering a build, provide the GitHub Actions run link and wait for the user to confirm completion or validation. Do not continuously monitor the run unless explicitly requested.
+4. Do not create or publish a Release, update launcher manifests, or deploy an update merely because a build completed. Wait for explicit user approval.
+5. A local macOS build is only allowed when the user explicitly requests a local build. Local builds are not the default official release process.
+6. Keep official builds on standard runners while the repository is public. Do not switch to larger or paid runners without explicit approval.
