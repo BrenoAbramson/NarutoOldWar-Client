@@ -1,6 +1,9 @@
 local OPCODE = 94
 local inventoryButton
 local actionsWindow
+local permanentContainerId
+local inventoryCapacity = 20
+local maximumCapacity = 100
 
 local function send(action)
     local protocol = g_game.getProtocolGame()
@@ -13,6 +16,44 @@ local function openInventory()
     send('open')
 end
 
+local function onExtendedOpcode(protocol, opcode, buffer)
+    local kind, containerId, capacity, maximum = buffer:match('^(%a+)|(%d+)|(%d+)|(%d+)$')
+    if kind ~= 'inventory' then return end
+    permanentContainerId = tonumber(containerId)
+    inventoryCapacity = tonumber(capacity) or 20
+    maximumCapacity = tonumber(maximum) or 100
+end
+
+function isPermanentContainer(container)
+    return container and permanentContainerId == container:getId()
+end
+
+function configureContainer(container)
+    if not isPermanentContainer(container) or not container.window then return false end
+
+    local window = container.window
+    local title = window:getChildById('miniwindowTitle')
+    if title then
+        title:setText(string.format('%s %d/%d', tr('Inventario'), container:getItemsCount(), inventoryCapacity))
+    end
+
+    local closeButton = window:recursiveGetChildById('closeButton')
+    local minimizeButton = window:recursiveGetChildById('minimizeButton')
+    local upButton = window:recursiveGetChildById('upButton')
+    if closeButton then closeButton:setVisible(false) end
+    if minimizeButton then minimizeButton:setVisible(false) end
+    if upButton then upButton:setVisible(false) end
+
+    window:setDraggable(false)
+    window:setId('permanentInventoryWindow')
+    window:setText(tr('Inventario permanente'))
+    window.onClose = function() return false end
+    window.onMousePress = function() return false end
+    window.onMouseRelease = function() window:setDraggable(false) end
+    window.maximumCapacity = maximumCapacity
+    return true
+end
+
 local function showActions()
     if not actionsWindow then
         actionsWindow = g_ui.displayUI('permanent_inventory')
@@ -23,6 +64,7 @@ local function showActions()
 end
 
 function init()
+    ProtocolGame.registerExtendedOpcode(OPCODE, onExtendedOpcode)
     connect(g_game, { onGameStart = onGameStart, onGameEnd = onGameEnd })
     if g_game.isOnline() then
         onGameStart()
@@ -30,6 +72,7 @@ function init()
 end
 
 function terminate()
+    ProtocolGame.unregisterExtendedOpcode(OPCODE)
     disconnect(g_game, { onGameStart = onGameStart, onGameEnd = onGameEnd })
     onGameEnd()
     if actionsWindow then
@@ -39,20 +82,24 @@ function terminate()
 end
 
 function onGameStart()
-    if inventoryButton then return end
-    inventoryButton = modules.client_topmenu.addRightGameButton(
-        'permanentInventoryButton', tr('Inventario permanente'),
-        '/images/topbuttons/inventory', openInventory)
-    inventoryButton.onMousePress = function(widget, mousePos, mouseButton)
-        if mouseButton == MouseRightButton then
-            showActions()
-            return true
+    permanentContainerId = nil
+    if not inventoryButton then
+        inventoryButton = modules.client_topmenu.addRightGameButton(
+            'permanentInventoryButton', tr('Inventario permanente'),
+            '/images/topbuttons/inventory', openInventory)
+        inventoryButton.onMousePress = function(widget, mousePos, mouseButton)
+            if mouseButton == MouseRightButton then
+                showActions()
+                return true
+            end
+            return false
         end
-        return false
     end
+    scheduleEvent(openInventory, 500)
 end
 
 function onGameEnd()
+    permanentContainerId = nil
     if inventoryButton then
         inventoryButton:destroy()
         inventoryButton = nil

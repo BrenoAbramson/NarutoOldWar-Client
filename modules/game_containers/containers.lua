@@ -1127,6 +1127,10 @@ function onContainerOpen(container, previousContainer)
     end
 
     containerWindow:setup()
+
+    if modules.game_permanent_inventory then
+        modules.game_permanent_inventory.configureContainer(container)
+    end
     
     -- Apply current sorting mode if one is active and manual sort mode is disabled
     local currentSortMode = containerSettings and containerSettings['currentSortMode']
@@ -1149,6 +1153,9 @@ function onContainerChangeSize(container, size)
     local preservedHeight = container.window.preservedHeight
     
     refreshContainerItems(container)
+    if modules.game_permanent_inventory then
+        modules.game_permanent_inventory.configureContainer(container)
+    end
     
     -- Restore the preserved height if it exists (from page switching)
     if preservedHeight then
@@ -1167,6 +1174,9 @@ function onContainerUpdateItem(container, slot, item, oldItem)
     ItemsDatabase.setTier(itemWidget, item)
     itemWidget:setShowDuration(g_game.getFeature(GameThingClock) and modules.client_options.getOption('showExpiryInContainers'))
     itemWidget:setShowCharges(g_game.getFeature(GameThingCounter) and modules.client_options.getOption('showExpiryInContainers'))
+    if modules.game_permanent_inventory then
+        modules.game_permanent_inventory.configureContainer(container)
+    end
     
     -- Note: Removed automatic re-sorting to prevent interference with manual item movement
     -- Sorting should only happen when explicitly requested by the user
