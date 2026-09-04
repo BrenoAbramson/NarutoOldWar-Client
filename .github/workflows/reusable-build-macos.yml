@@ -150,8 +150,21 @@ jobs:
           ARTIFACT_NAME: otclient-${{ matrix.os }}-${{ matrix.buildtype }}
         run: |
           cd "${BUILD_DIR}/bin"
+          mv OTClient.app OTClient-current.app
+          curl -fL \
+            "https://github.com/BrenoAbramson/NarutoOldWar-Client/releases/download/v1.0.29/OTClient-macos.zip" \
+            -o legacy-client.zip
+          mkdir legacy-client
+          ditto -x -k legacy-client.zip legacy-client
+          rsync -a OTClient-current.app/ legacy-client/OTClient.app/
+          rm -rf OTClient-current.app legacy-client.zip
+          mv legacy-client/OTClient.app OTClient.app
+          rm -rf legacy-client
+          find OTClient.app -name '._*' -delete
+          rm -rf OTClient.app/Contents/_CodeSignature
           xattr -cr OTClient.app
           codesign --force --deep --sign - OTClient.app
+          codesign --verify --deep --strict --verbose=4 OTClient.app
           ditto -c -k --keepParent OTClient.app "${ARTIFACT_NAME}.zip"
 
       - name: Upload Artifact
