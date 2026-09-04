@@ -176,6 +176,8 @@ jobs:
             cp "${GITHUB_WORKSPACE}/${resource_file}" \
               "legacy-client/OTClient.app/Contents/Resources/${resource_file}"
           done
+          python3 "${GITHUB_WORKSPACE}/scripts/verify-client-assets.py" \
+            "legacy-client/OTClient.app/Contents/Resources"
           rm -rf OTClient-current.app legacy-client.zip current-release current-release.zip
           mv legacy-client/OTClient.app OTClient.app
           rm -rf legacy-client

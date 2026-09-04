@@ -250,26 +250,40 @@ jobs:
         shell: pwsh
         run: |
           $source = Join-Path (Get-Location) "artifacts/${{ matrix.configuration }}/otclient_dx_x64.exe"
-          $releaseDir = Join-Path (Get-Location) "release-artifacts/${{ matrix.configuration }}"
+          $artifactDir = Join-Path (Get-Location) "release-artifacts/${{ matrix.configuration }}"
+          $releaseDir = Join-Path $artifactDir "OTClient-windows"
+          $archive = Join-Path $artifactDir "OTClient-windows.zip"
 
           if (-not (Test-Path -Path $source -PathType Leaf)) {
             throw "Required Windows executable was not generated: $source"
           }
 
           New-Item -ItemType Directory -Force -Path $releaseDir | Out-Null
-          Copy-Item -Path $source -Destination $releaseDir
+          Copy-Item -Path $source -Destination (Join-Path $releaseDir "OTClient.exe")
+          Copy-Item -Path $source -Destination (Join-Path $releaseDir "OTClient DirectX.exe")
 
-          $unexpected = Get-ChildItem -Path $releaseDir -File |
+          foreach ($resourceDir in @('data', 'modules', 'mods')) {
+            Copy-Item -Path $resourceDir -Destination $releaseDir -Recurse
+          }
+          foreach ($resourceFile in @('init.lua', 'meta.lua', 'config.ini', 'cacert.pem', 'otclientrc.lua')) {
+            Copy-Item -Path $resourceFile -Destination $releaseDir
+          }
+
+          python scripts/verify-client-assets.py $releaseDir
+
+          $unexpected = Get-ChildItem -Path $releaseDir -File -Recurse |
             Where-Object { $_.Extension -in @('.pdb', '.exp', '.lib') -or $_.Name -like '._*' }
           if ($unexpected) {
             $unexpected | ForEach-Object { Write-Error "Forbidden release artifact: $($_.Name)" }
             throw "Windows release artifact contains forbidden files"
           }
 
+          Compress-Archive -Path (Join-Path $releaseDir '*') -DestinationPath $archive
+
       - name: Upload artifacts (Solution)
         if: matrix.type == 'Solution'
         uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.artifact }}
-          path: release-artifacts/${{ matrix.configuration }}/
+          path: release-artifacts/${{ matrix.configuration }}/OTClient-windows.zip
           if-no-files-found: error
