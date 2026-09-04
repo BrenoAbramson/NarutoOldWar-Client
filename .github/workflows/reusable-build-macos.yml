@@ -154,10 +154,25 @@ jobs:
           curl -fL \
             "https://github.com/BrenoAbramson/NarutoOldWar-Client/releases/download/v1.0.29/OTClient-macos.zip" \
             -o legacy-client.zip
+          curl -fL \
+            "https://github.com/BrenoAbramson/NarutoOldWar-Client/releases/download/v1.0.32/OTClient-macos.zip" \
+            -o current-release.zip
           mkdir legacy-client
+          mkdir current-release
           ditto -x -k legacy-client.zip legacy-client
+          ditto -x -k current-release.zip current-release
+          rsync -a --checksum current-release/OTClient.app/ legacy-client/OTClient.app/
           rsync -a --checksum OTClient-current.app/ legacy-client/OTClient.app/
-          rm -rf OTClient-current.app legacy-client.zip
+          for resource_dir in data modules mods; do
+            rsync -a --checksum \
+              "${GITHUB_WORKSPACE}/${resource_dir}/" \
+              "legacy-client/OTClient.app/Contents/Resources/${resource_dir}/"
+          done
+          for resource_file in init.lua meta.lua config.ini cacert.pem otclientrc.lua; do
+            cp "${GITHUB_WORKSPACE}/${resource_file}" \
+              "legacy-client/OTClient.app/Contents/Resources/${resource_file}"
+          done
+          rm -rf OTClient-current.app legacy-client.zip current-release current-release.zip
           mv legacy-client/OTClient.app OTClient.app
           rm -rf legacy-client
           find OTClient.app -name '._*' -delete
