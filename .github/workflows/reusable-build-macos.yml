@@ -156,7 +156,7 @@ jobs:
             -o legacy-client.zip
           mkdir legacy-client
           ditto -x -k legacy-client.zip legacy-client
-          rsync -a OTClient-current.app/ legacy-client/OTClient.app/
+          rsync -a --checksum OTClient-current.app/ legacy-client/OTClient.app/
           rm -rf OTClient-current.app legacy-client.zip
           mv legacy-client/OTClient.app OTClient.app
           rm -rf legacy-client
