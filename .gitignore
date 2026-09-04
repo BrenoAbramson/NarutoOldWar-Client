@@ -30,6 +30,12 @@ vc18/
 /bin/
 /data/sounds/*/
 /data/things/*/
+!/data/things/781/
+!/data/things/781/Tibia.dat
+!/data/things/781/Tibia.spr
+!/data/things/781/assets.sec
+!/data/things/781/tibia.otfi
+!/data/things/781/SHA256SUMS
 
 # MSTest test Results
 [Tt]est[Rr]esult*/
@@ -225,6 +231,8 @@ tags
 *.otbm
 *.spr
 *.dat
+!/data/things/781/Tibia.dat
+!/data/things/781/Tibia.spr
 *.pic
 config.otml
 *.patch

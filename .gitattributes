@@ -6,3 +6,8 @@
 *.ot* eol=lf 
 *.cpp eol=lf 
 *.h   eol=lf 
+
+# Version the canonical 7.81 client assets without storing large binaries in Git history.
+data/things/781/*.dat filter=lfs diff=lfs merge=lfs -text
+data/things/781/*.spr filter=lfs diff=lfs merge=lfs -text
+data/things/781/*.sec filter=lfs diff=lfs merge=lfs -text

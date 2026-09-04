@@ -84,6 +84,11 @@ jobs:
 
       - name: Checkout repository
         uses: actions/checkout@v6
+        with:
+          lfs: true
+
+      - name: Verify canonical 7.81 assets
+        run: python scripts/verify-client-assets.py
 
       - name: Export GitHub Actions cache environment variables
         uses: actions/github-script@v9

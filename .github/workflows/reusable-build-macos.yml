@@ -37,6 +37,10 @@ jobs:
         uses: actions/checkout@v6
         with:
           fetch-depth: 0
+          lfs: true
+
+      - name: Verify canonical 7.81 assets
+        run: python3 scripts/verify-client-assets.py
 
       - name: Get vcpkg commit ID
         id: vcpkg-step
