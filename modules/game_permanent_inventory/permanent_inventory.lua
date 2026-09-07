@@ -12,7 +12,7 @@ local function send(action)
     end
 end
 
-local function openInventory()
+function openInventory()
     send('open')
 end
 
@@ -30,6 +30,10 @@ end
 
 function configureContainer(container)
     if not isPermanentContainer(container) or not container.window then return false end
+
+    if modules.game_inventory then
+        modules.game_inventory.setPermanentBackpackItem(container:getContainerItem(), openInventory)
+    end
 
     local window = container.window
     local title = window:getChildById('miniwindowTitle')
@@ -100,6 +104,9 @@ end
 
 function onGameEnd()
     permanentContainerId = nil
+    if modules.game_inventory then
+        modules.game_inventory.clearPermanentBackpackItem()
+    end
     if inventoryButton then
         inventoryButton:destroy()
         inventoryButton = nil

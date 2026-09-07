@@ -4,6 +4,8 @@ local inventoryShrink = false
 
 local pvpModeRadioGroup = nil 
 local monkMirrorItem = nil
+local permanentBackpackItem = nil
+local permanentBackpackOpen = nil
 
 local function getInventoryUi()
     if inventoryShrink then
@@ -138,6 +140,25 @@ local function inventoryEvent(player, slot, item, oldItem)
 
     local slotPanel, toggler = getSlotInfo(ui)
 
+    if slot == InventorySlotBack then
+        local showPermanentBackpack = not item and permanentBackpackItem and permanentBackpackOpen
+        if showPermanentBackpack then
+            item = permanentBackpackItem
+            slotPanel.item:setDraggable(false)
+            slotPanel.item.onMouseRelease = function(widget, mousePosition, mouseButton)
+                if widget:containsPoint(mousePosition) and
+                    (mouseButton == MouseLeftButton or mouseButton == MouseRightButton) then
+                    permanentBackpackOpen()
+                    return true
+                end
+                return false
+            end
+        else
+            slotPanel.item:setDraggable(true)
+            slotPanel.item.onMouseRelease = nil
+        end
+    end
+
     slotPanel.item:setItem(item)
     toggler:setEnabled(not item)
     slotPanel.item:setWidth(34)
@@ -153,6 +174,26 @@ local function inventoryEvent(player, slot, item, oldItem)
             modules.game_proficiency.updateTopBarProficiency()
         end
         updateMonkMirrorItem(item)
+    end
+end
+
+function setPermanentBackpackItem(item, openCallback)
+    permanentBackpackItem = item
+    permanentBackpackOpen = openCallback
+
+    local player = g_game.getLocalPlayer()
+    if player and not inventoryShrink then
+        inventoryEvent(player, InventorySlotBack, player:getInventoryItem(InventorySlotBack))
+    end
+end
+
+function clearPermanentBackpackItem()
+    permanentBackpackItem = nil
+    permanentBackpackOpen = nil
+
+    local player = g_game.getLocalPlayer()
+    if player and not inventoryShrink then
+        inventoryEvent(player, InventorySlotBack, player:getInventoryItem(InventorySlotBack))
     end
 end
 
@@ -351,6 +392,8 @@ end
 
 function inventoryController:onGameEnd()
     monkMirrorItem = nil
+    permanentBackpackItem = nil
+    permanentBackpackOpen = nil
 
     local lastCombatControls = g_settings.getNode('LastCombatControls')
     if not lastCombatControls then
