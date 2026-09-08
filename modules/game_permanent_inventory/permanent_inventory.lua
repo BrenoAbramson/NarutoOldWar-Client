@@ -4,6 +4,7 @@ local actionsWindow
 local permanentContainerId
 local inventoryCapacity = 20
 local maximumCapacity = 100
+local inventorySkinItem
 
 local function send(action)
     local protocol = g_game.getProtocolGame()
@@ -17,11 +18,27 @@ function openInventory()
 end
 
 local function onExtendedOpcode(protocol, opcode, buffer)
-    local kind, containerId, capacity, maximum = buffer:match('^(%a+)|(%d+)|(%d+)|(%d+)$')
+    local kind, containerId, capacity, maximum, skinClientId =
+        buffer:match('^(%a+)|(%d+)|(%d+)|(%d+)|(%d+)$')
+    if not kind then
+        kind, containerId, capacity, maximum = buffer:match('^(%a+)|(%d+)|(%d+)|(%d+)$')
+    end
     if kind ~= 'inventory' then return end
     permanentContainerId = tonumber(containerId)
     inventoryCapacity = tonumber(capacity) or 20
     maximumCapacity = tonumber(maximum) or 100
+
+    if skinClientId then
+        inventorySkinItem = Item.create(tonumber(skinClientId))
+        if modules.game_inventory then
+            modules.game_inventory.setPermanentBackpackItem(inventorySkinItem, openInventory)
+        end
+    end
+
+    local container = g_game.getContainer(permanentContainerId)
+    if container then
+        configureContainer(container)
+    end
 end
 
 function isPermanentContainer(container)
@@ -32,7 +49,8 @@ function configureContainer(container)
     if not isPermanentContainer(container) or not container.window then return false end
 
     if modules.game_inventory then
-        modules.game_inventory.setPermanentBackpackItem(container:getContainerItem(), openInventory)
+        modules.game_inventory.setPermanentBackpackItem(
+            inventorySkinItem or container:getContainerItem(), openInventory)
     end
 
     local window = container.window
@@ -87,6 +105,7 @@ end
 
 function onGameStart()
     permanentContainerId = nil
+    inventorySkinItem = nil
     if not inventoryButton then
         inventoryButton = modules.client_topmenu.addRightGameButton(
             'permanentInventoryButton', tr('Inventario permanente'),
@@ -104,6 +123,7 @@ end
 
 function onGameEnd()
     permanentContainerId = nil
+    inventorySkinItem = nil
     if modules.game_inventory then
         modules.game_inventory.clearPermanentBackpackItem()
     end
