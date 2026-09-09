@@ -1,0 +1,8 @@
+Module
+  name: game_depot_selector
+  description: Permanent depot selector for client id 8088
+  author: Naruto Old War
+  sandboxed: true
+  scripts: [ depot_selector ]
+  @onLoad: init()
+  @onUnload: terminate()

@@ -12,6 +12,7 @@ Module
     - game_minimap
     - game_healthinfo
     - game_inventory
+    - game_depot_selector
     - game_mainpanel
     - game_prey
     - game_imbuing
@@ -29,6 +30,7 @@ Module
     - game_npctrade
     - game_textwindow
     - game_playertrade
+    - game_modern_trade
     - game_bugreport
     - game_playerdeath
     - game_playermount

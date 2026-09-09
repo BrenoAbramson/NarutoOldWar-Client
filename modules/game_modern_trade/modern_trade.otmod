@@ -1,0 +1,8 @@
+Module
+  name: game_modern_trade
+  description: Modern player trade
+  author: Naruto Old War
+  sandboxed: true
+  scripts: [ modern_trade ]
+  @onLoad: init()
+  @onUnload: terminate()

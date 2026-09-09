@@ -1,0 +1,51 @@
+DepotSelectorButton < UIButton
+  size: 34 34
+  image-source: /images/ui/item
+  font: verdana-11px-rounded
+  color: #c8c8c8
+
+  $hover:
+    color: #ffffff
+
+  UIWidget
+    id: lockedIcon
+    anchors.centerIn: parent
+    size: 16 16
+    image-source: /images/game/wheel/icon-locked
+    phantom: true
+    visible: false
+
+MainWindow
+  id: depotSelectorWindow
+  !text: tr('Escolha o deposito')
+  size: 178 82
+  @onEscape: modules.game_depot_selector.close()
+
+  DepotSelectorButton
+    id: depotSelect1
+    anchors.top: parent.top
+    anchors.left: parent.left
+    margin-top: 4
+    text: 1
+
+  DepotSelectorButton
+    id: depotSelect2
+    anchors.left: depotSelect1.right
+    anchors.verticalCenter: depotSelect1.verticalCenter
+    margin-left: 3
+    text: 2
+
+  DepotSelectorButton
+    id: depotSelect3
+    anchors.left: depotSelect2.right
+    anchors.verticalCenter: depotSelect1.verticalCenter
+    margin-left: 3
+    text: 3
+
+  DepotSelectorButton
+    id: depotSelectDelivery
+    anchors.left: depotSelect3.right
+    anchors.verticalCenter: depotSelect1.verticalCenter
+    margin-left: 3
+    text: E
+    tooltip: Entrega

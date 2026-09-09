@@ -837,14 +837,21 @@ function createThingMenu(menuPosition, lookThing, useThing, creatureThing)
         if useThing:isContainer() then
             if useThing:getParentContainer() then
                 menu:addOption(tr('Open'), function()
-                    g_game.open(useThing, useThing:getParentContainer())
+                    local parentContainer = useThing:getParentContainer()
+                    if not modules.game_depot_selector or
+                        not modules.game_depot_selector.tryOpen(useThing, parentContainer) then
+                        g_game.open(useThing, parentContainer)
+                    end
                 end, shortcut)
                 menu:addOption(tr('Open in new window'), function()
                     g_game.open(useThing)
                 end)
             else
                 menu:addOption(tr('Open'), function()
-                    g_game.open(useThing)
+                    if not modules.game_depot_selector or
+                        not modules.game_depot_selector.tryOpen(useThing) then
+                        g_game.open(useThing)
+                    end
                 end, shortcut)
             end
         else
@@ -885,13 +892,6 @@ function createThingMenu(menuPosition, lookThing, useThing, creatureThing)
                 g_game.sendQuickLoot(1, useThing)
             end)
         end
-    end
-
-    if lookThing and not lookThing:isCreature() and not lookThing:isNotMoveable() and lookThing:isPickupable() then
-        menu:addSeparator()
-        menu:addOption(tr('Trade with ...'), function()
-            startTradeWith(lookThing)
-        end)
     end
 
     if lookThing then
@@ -984,6 +984,11 @@ function createThingMenu(menuPosition, lookThing, useThing, creatureThing)
             if creatureThing:isPlayer() then
                 menu:addSeparator()
                 local creatureName = creatureThing:getName()
+                if modules.game_modern_trade then
+                    menu:addOption(tr('Trocar'), function()
+                        modules.game_modern_trade.request(creatureThing:getId())
+                    end)
+                end
                 if modules.game_cyclopedia and modules.game_cyclopedia.canInviteToOrganization and
                     modules.game_cyclopedia.canInviteToOrganization() then
                     menu:addOption('Convidar para organiza' .. string.char(0xE7, 0xE3) .. 'o', function()
@@ -1347,6 +1352,10 @@ function processMouseAction(menuPosition, mouseButton, autoWalkPos, lookThing, u
             return true
         elseif useThing and g_keyboard.isPrimaryModifierOnly(keyboardModifiers) and
             (mouseButton == MouseLeftButton or mouseButton == MouseRightButton) then
+            if modules.game_depot_selector and
+                modules.game_depot_selector.tryOpen(useThing, useThing:getParentContainer()) then
+                return true
+            end
             local smartLeftClick = modules.client_options.getOption('smartLeftClick')
 
             if smartLeftClick then
@@ -1763,6 +1772,20 @@ local function handleItemInteraction(item, widget, callback)
 
     okButton.onClick = moveFunc
     cancelButton.onClick = cancelFunc
+end
+
+function chooseItemCount(item, callback)
+    if not item or not callback then return end
+    if item:getCount() <= 1 then
+        callback(1)
+        return
+    end
+    if countWindow and not countWindow:isDestroyed() then return end
+    countWindow = g_ui.createWidget('CountWindow', rootWidget)
+    handleItemInteraction(item, countWindow, function(count)
+        callback(count)
+        countWindow = nil
+    end)
 end
 
 function stashItem(item)
