@@ -64,6 +64,11 @@ local function showSelector(unlockedTabs)
 end
 
 local function onExtendedOpcode(protocol, opcode, buffer)
+    if buffer == 'depotClose' then
+        pendingContainerTitle = nil
+        closeSelector()
+        return
+    end
     local unlockedTabs = buffer:match('^depotMenu|(%d+)$')
     if not unlockedTabs then return end
     g_logger.info(string.format('[DEPOT-DIAG] selector received unlockedTabs=%s', unlockedTabs))
