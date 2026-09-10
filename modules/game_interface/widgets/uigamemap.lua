@@ -1,5 +1,30 @@
 UIGameMap = extends(UIMap, 'UIGameMap')
 
+local function logDragDiagnostic(message, ...)
+    if modules.game_interface and modules.game_interface.isClientDiagnosticsEnabled and
+       modules.game_interface.isClientDiagnosticsEnabled() then
+        g_logger.info(string.format('[DRAG-DIAG] ' .. message, ...))
+    end
+end
+
+local function describeDragThing(thing)
+    if not thing then
+        return 'none'
+    end
+
+    local position = thing:getPosition()
+    local positionText = position and string.format('%d,%d,%d', position.x, position.y, position.z) or 'none'
+    local stack = -1
+    local tile = thing:getTile()
+    if tile then
+        stack = tile:getThingStackPos(thing)
+    end
+
+    return string.format('id=%s item=%s creature=%s notMoveable=%s position=%s stack=%s',
+        thing:getId(), tostring(thing:isItem()), tostring(thing:isCreature()),
+        tostring(thing:isNotMoveable()), positionText, stack)
+end
+
 function UIGameMap.create()
     local gameMap = UIGameMap.internalCreate()
     gameMap:setKeepAspectRatio(true)
@@ -14,13 +39,18 @@ end
 function UIGameMap:onDragEnter(mousePos)
     local tile = self:getTile(mousePos)
     if not tile then
+        logDragDiagnostic('enter rejected reason=no-tile mouse=%d,%d', mousePos.x, mousePos.y)
         return false
     end
 
     local thing = tile:getTopMoveThing()
     if not thing then
+        local position = tile:getPosition()
+        logDragDiagnostic('enter rejected reason=no-thing tile=%d,%d,%d', position.x, position.y, position.z)
         return false
     end
+
+    logDragDiagnostic('enter selected %s', describeDragThing(thing))
 
     if thing:isItem() and not thing:isNotMoveable() then
         UIDragIcon:display(thing)
@@ -39,6 +69,8 @@ function UIGameMap:onDragEnter(mousePos)
 end
 
 function UIGameMap:onDragLeave(droppedWidget, mousePos)
+    logDragDiagnostic('leave droppedWidget=%s current=%s', tostring(droppedWidget ~= nil),
+        describeDragThing(self.currentDragThing))
     self.currentDragThing = nil
     self.hoveredWho = nil
     -- Restore cursor
@@ -53,34 +85,44 @@ end
 
 function UIGameMap:onDrop(widget, mousePos)
     if not self:canAcceptDrop(widget, mousePos) then
+        logDragDiagnostic('drop rejected reason=target-widget current=%s',
+            describeDragThing(widget and widget.currentDragThing))
         return false
     end
 
     local tile = self:getTile(mousePos)
     if not tile then
+        logDragDiagnostic('drop rejected reason=no-destination-tile')
         return false
     end
 
     local thing = widget.currentDragThing
     local thingPos = thing:getPosition()
     if not thingPos then
+        logDragDiagnostic('drop rejected reason=no-source-position current=%s', describeDragThing(thing))
         return false
     end
 
     local thingTile = thing:getTile()
     if thingPos.x ~= 65535 then
         if not thingTile then
+            logDragDiagnostic('drop rejected reason=no-source-tile current=%s', describeDragThing(thing))
             return false
         end
         if thingTile:getThingStackPos(thing) == -1 then
+            logDragDiagnostic('drop rejected reason=source-thing-missing current=%s', describeDragThing(thing))
             return false
         end
     end
 
     local toPos = tile:getPosition()
     if thingPos.x == toPos.x and thingPos.y == toPos.y and thingPos.z == toPos.z then
+        logDragDiagnostic('drop rejected reason=same-position current=%s', describeDragThing(thing))
         return false
     end
+
+    logDragDiagnostic('drop sending %s destination=%d,%d,%d count=%s', describeDragThing(thing),
+        toPos.x, toPos.y, toPos.z, thing:isItem() and thing:getCount() or 1)
 
     if thing:isItem() and thing:getCount() > 1 then
         modules.game_interface.moveStackableItem(thing, toPos)
@@ -151,6 +193,7 @@ end
 
 function UIGameMap:canAcceptDrop(widget, mousePos)
     if not widget or not widget.currentDragThing then
+        logDragDiagnostic('accept rejected reason=no-drag-widget-or-thing')
         return false
     end
 
@@ -160,6 +203,8 @@ function UIGameMap:canAcceptDrop(widget, mousePos)
         if child == self then
             return true
         elseif not child:isPhantom() then
+            logDragDiagnostic('accept rejected reason=blocking-widget class=%s id=%s',
+                child:getClassName(), child:getId())
             return false
         end
     end

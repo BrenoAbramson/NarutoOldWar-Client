@@ -26,6 +26,8 @@ spellGroupPressed = {--[[
     [GroupId] = bool -- Tracks if spell group is currently pressed
 ]]
 }
+local JUTSU_COOLDOWN_OPCODE = 96
+local jutsuCooldownCache = {}
 cachedItemWidget = { --[[
      [ItemID] = { 
         [SlotId] = Widget1,
@@ -63,6 +65,58 @@ end
 function getLearnedJutsuName(words)
     local jutsu = getLearnedJutsuData(words)
     return jutsu and jutsu.name or nil
+end
+
+local function normalizeJutsuWords(words)
+    return words and words:lower():gsub('^%s+', ''):gsub('%s+$', '') or ''
+end
+
+local function applyJutsuCooldown(words, delay)
+    local key = normalizeJutsuWords(words)
+    delay = tonumber(delay) or 0
+    if key == '' or delay <= 0 then return end
+    jutsuCooldownCache[key] = { startTime = g_clock.millis(), exhaustion = delay }
+    for _, actionbar in pairs(activeActionBars) do
+        for _, button in pairs(actionbar.tabBar:getChildren()) do
+            local cache = getButtonCache(button)
+            if cache and cache.isSpell and normalizeJutsuWords(cache.param) == key then
+				button.cooldown:showTime(modules.client_options.getOption("cooldownSecond"))
+				button.cooldown:showProgress(true)
+				button.cooldown:setDuration(delay)
+				button.cooldown:start()
+                if cache.removeCooldownEvent then removeEvent(cache.removeCooldownEvent) end
+                cache.removeCooldownEvent = scheduleEvent(function() removeCooldown(button) end, delay)
+            end
+        end
+    end
+end
+
+function checkRemainJutsuCooldown(button, words)
+    local data = jutsuCooldownCache[normalizeJutsuWords(words)]
+    if not data then return end
+    local remaining = data.startTime + data.exhaustion - g_clock.millis()
+    if remaining <= 0 then
+        jutsuCooldownCache[normalizeJutsuWords(words)] = nil
+        return
+    end
+	button.cooldown:showTime(modules.client_options.getOption("cooldownSecond"))
+	button.cooldown:showProgress(true)
+	button.cooldown:setDuration(remaining)
+	button.cooldown:start()
+    if button.cache.removeCooldownEvent then removeEvent(button.cache.removeCooldownEvent) end
+    button.cache.removeCooldownEvent = scheduleEvent(function() removeCooldown(button) end, remaining)
+end
+
+local function onJutsuCooldownOpcode(protocol, opcode, buffer)
+    if buffer == 'clear' then
+        jutsuCooldownCache = {}
+        for _, actionbar in pairs(activeActionBars) do
+            for _, button in pairs(actionbar.tabBar:getChildren()) do removeCooldown(button) end
+        end
+        return
+    end
+    local action, words, delay = buffer:match('^([^|]+)|([^|]+)|(%d+)$')
+    if action == 'start' then applyJutsuCooldown(words, delay) end
 end
 
 function replaceBottomBarWithJutsus(jutsus)
@@ -383,6 +437,7 @@ end
 function ActionBarController:onInit()
     g_ui.importStyle("otui/style.otui")
     g_ui.importStyle("otui/multiaction.otui")
+	self:registerExtendedOpcode(JUTSU_COOLDOWN_OPCODE, onJutsuCooldownOpcode)
     gameRootPanel = modules.game_interface.getRootPanel()
     mouseGrabberWidget = g_ui.createWidget('UIWidget')
     mouseGrabberWidget:setVisible(false)
@@ -450,6 +505,7 @@ function ActionBarController:onGameEnd()
     isLoaded = false
     cleanupMultiActionState()
     spellGroupCooldownCache = {}
+	jutsuCooldownCache = {}
     for _, actionbar in pairs(activeActionBars) do
         unbindActionBarEvent(actionbar)
     end

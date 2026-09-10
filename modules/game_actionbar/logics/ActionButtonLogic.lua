@@ -1159,6 +1159,9 @@ function updateButton(button)
         button.cache.param = sendText
         button.cache.sendAutomatic = buttonData["actionsetting"]["sendAutomatically"]
         button.cache.actionType = UseTypes["chatText"]
+        if button.cache.isSpell and checkRemainJutsuCooldown then
+            checkRemainJutsuCooldown(button, sendText)
+        end
     end
 
     if passiveAbility then

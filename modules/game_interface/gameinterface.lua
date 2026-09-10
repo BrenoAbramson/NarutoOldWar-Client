@@ -93,6 +93,10 @@ local function toggleClientDiagnostics()
     applyClientDiagnostics(not clientDiagnosticsEnabled, true)
 end
 
+function isClientDiagnosticsEnabled()
+    return clientDiagnosticsEnabled
+end
+
 local function splitHengeBuffer(buffer)
     local parts = {}
     for part in string.gmatch(buffer .. '|', '(.-)|') do

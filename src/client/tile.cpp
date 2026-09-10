@@ -701,6 +701,11 @@ ThingPtr Tile::getTopMoveThing()
 
     for (int8_t i = -1, s = m_things.size(); ++i < s;) {
         const auto& thing = m_things[i];
+        // Splashes use ground priority in legacy protocols but are still
+        // classified as common things. They must not hide a moveable item.
+        if (thing->isSplash())
+            continue;
+
         if (thing->isCommon()) {
             if (i > 0 && thing->isNotMoveable())
                 return m_things[i - 1];

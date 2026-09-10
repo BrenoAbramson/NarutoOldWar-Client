@@ -263,7 +263,8 @@ function onLearnedSpellList(protocol, msg)
 			name = msg:getString(),
 			words = msg:getString(),
 			level = msg:getU16(),
-			mana = msg:getU16()
+			mana = msg:getU16(),
+			cooldown = msg:getU32()
 		})
 	end
 
@@ -324,6 +325,7 @@ function updateSpellInformation(widget)
 	nameValueLabel:setText(info and info.name or '')
 	levelValueLabel:setText(info and info.level or '')
 	manaValueLabel:setText(info and info.mana or '')
+	cooldownValueLabel:setText(info and string.format('%.1f s', info.cooldown / 1000) or '')
 end
 
 function selectDefaultVocation()
