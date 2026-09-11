@@ -201,7 +201,7 @@ MainWindow
         self:setText(tr('Character List'))
       end
     else
-      self:setSize({width = 250, height = 248})
+      self:setSize({width = 410, height = 248})
     end
 
   TextList
@@ -710,6 +710,15 @@ MainWindow
       image-color: red
     $on:
       image-color: green
+
+  Button
+    id: buttonCreateCharacter
+    text: Criar personagem
+    width: 120
+    anchors.right: buttonOk.left
+    anchors.bottom: parent.bottom
+    margin-right: 10
+    @onClick: EnterGame.showAccountCreation(true)
 
   Button
     id: buttonOk

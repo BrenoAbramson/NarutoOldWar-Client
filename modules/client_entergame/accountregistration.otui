@@ -1,0 +1,91 @@
+MainWindow
+  id: accountRegistrationWindow
+  size: 370 275
+  text: Criar conta
+  @onEscape: EnterGame.closeAccountCreation()
+
+  Label
+    id: emailLabel
+    text: Email
+    anchors.left: parent.left
+    anchors.top: parent.top
+
+  TextEdit
+    id: email
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: emailLabel.bottom
+    margin-top: 3
+
+  Label
+    id: passwordLabel
+    text: Senha
+    anchors.left: parent.left
+    anchors.top: email.bottom
+    margin-top: 8
+
+  PasswordTextEdit
+    id: password
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: passwordLabel.bottom
+    margin-top: 3
+
+  Label
+    id: repeatPasswordLabel
+    text: Confirmar senha
+    anchors.left: parent.left
+    anchors.top: password.bottom
+    margin-top: 8
+
+  PasswordTextEdit
+    id: repeatPassword
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: repeatPasswordLabel.bottom
+    margin-top: 3
+
+  Label
+    id: characterNameLabel
+    text: Nome do personagem
+    anchors.left: parent.left
+    anchors.top: repeatPassword.bottom
+    margin-top: 8
+
+  TextEdit
+    id: characterName
+    anchors.left: parent.left
+    anchors.right: parent.right
+    anchors.top: characterNameLabel.bottom
+    margin-top: 3
+
+  Label
+    id: sexLabel
+    text: Sexo
+    anchors.left: parent.left
+    anchors.top: characterName.bottom
+    margin-top: 8
+
+  ComboBox
+    id: sex
+    width: 130
+    anchors.left: parent.left
+    anchors.top: sexLabel.bottom
+    margin-top: 3
+
+  Button
+    id: createButton
+    text: Criar
+    width: 125
+    anchors.right: cancelButton.left
+    anchors.bottom: parent.bottom
+    margin-right: 8
+    @onClick: EnterGame.submitAccountCreation()
+
+  Button
+    id: cancelButton
+    text: Cancelar
+    width: 90
+    anchors.right: parent.right
+    anchors.bottom: parent.bottom
+    @onClick: EnterGame.closeAccountCreation()

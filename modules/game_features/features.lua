@@ -66,6 +66,11 @@ controller:registerEvents(g_game, {
                 g_game.enableFeature(GameMagicEffectU16)
                 g_game.enableFeature(GameDistanceEffectU16)
             end
+
+			-- O protocolo 7.81 deste servidor usa email em vez de numero de conta.
+			if version == 781 then
+				g_game.enableFeature(GameAccountNames)
+			end
         end
 
         if version >= 790 then

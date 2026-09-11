@@ -19,12 +19,21 @@ local motdEnabled = true
 local tokenWindow
 local authErrorBox
 local hasAttemptedAuthenticator = false
+local pendingRegistration
 local DEFAULT_SERVER_HOST = '100.120.164.98'
 local DEFAULT_SERVER_PORT = 7171
 local DEFAULT_CLIENT_VERSION = 781
 
 -- private functions
 local function onError(protocol, message, errorCode)
+	local wasRegistration = pendingRegistration ~= nil
+	if pendingRegistration then
+		G.account = pendingRegistration.email
+		G.password = pendingRegistration.password
+		enterGame:getChildById('accountNameTextEdit'):setText(G.account)
+		enterGame:getChildById('accountPasswordTextEdit'):setText(G.password)
+		pendingRegistration = nil
+	end
     if loadBox then
         loadBox:destroy()
         loadBox = nil
@@ -49,7 +58,7 @@ local function onError(protocol, message, errorCode)
         return
     end
 
-    if not errorCode then
+    if not errorCode and not wasRegistration then
         EnterGame.clearAccountFields()
     end
 
@@ -69,6 +78,13 @@ local function onSessionKey(protocol, sessionKey)
 end
 
 local function onCharacterList(protocol, characters, account, otui)
+	if pendingRegistration then
+		G.account = pendingRegistration.email
+		G.password = pendingRegistration.password
+		enterGame:getChildById('accountNameTextEdit'):setText(G.account)
+		enterGame:getChildById('accountPasswordTextEdit'):setText(G.password)
+		pendingRegistration = nil
+	end
     local httpLogin = enterGame:getChildById('httpLoginBox'):isChecked()
 
     -- Try add server to the server list
@@ -148,10 +164,11 @@ local function onUpdateNeeded(protocol, signature)
 end
 
 local function updateLabelText()
-    if enterGame:getChildById('clientComboBox') and tonumber(enterGame:getChildById('clientComboBox'):getText()) > 1080 then
+    local version = enterGame:getChildById('clientComboBox') and tonumber(enterGame:getChildById('clientComboBox'):getText())
+    if version == 781 or (version and version > 1080) then
         enterGame:setText("Journey Onwards")
         enterGame:getChildById('emailLabel'):setText("Email:")
-        enterGame:getChildById('rememberEmailBox'):setText("Remember Email:")
+        enterGame:getChildById('rememberEmailBox'):setText("Lembrar senha")
     else
         enterGame:setText("Enter Game")
         enterGame:getChildById('emailLabel'):setText("Acc Name:")
@@ -353,6 +370,7 @@ end
 
 function EnterGame.terminate()
     Keybind.delete("Misc.", "Change Character")
+	EnterGame.closeAccountCreation()
 
     disconnect(clientBox, {
         onOptionChange = EnterGame.onClientVersionChange
@@ -857,6 +875,13 @@ function EnterGame.doLogin()
             return
         end
     end
+end
+
+function EnterGame.loginAccountCommand(command, email, password)
+	pendingRegistration = { email = email, password = password }
+	enterGame:getChildById('accountNameTextEdit'):setText(command)
+	enterGame:getChildById('accountPasswordTextEdit'):setText(password)
+	EnterGame.doLogin()
 end
 
 function EnterGame.displayMotd()

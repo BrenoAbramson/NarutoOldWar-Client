@@ -46,13 +46,13 @@ EnterGameWindow
     margin-top: 10
     opacity: 0.8
 
-  HiddenTextQtToggleEdit
+  TextQtEdit
     id: accountNameTextEdit
     anchors.right: accountPasswordTextEdit.right
     anchors.verticalCenter: emailLabel.verticalCenter
     anchors.left: accountPasswordTextEdit.left
     
-  HiddenTextQtEdit
+  HiddenTextQtToggleEdit
     id: accountPasswordTextEdit
     anchors.right: parent.right
     anchors.left: passwordLabel.right
@@ -223,21 +223,13 @@ EnterGameWindow
 
   QtButton
     id: btnCreateNewAccount
-    !text: tr('Create New Account')
+    text: Criar conta
     anchors.left: parent.left
     anchors.top: prev.bottom
     margin-top: -17
     size: 109 20
     @onClick: |
-      self:disable()
-      createWidgetAccount()
-
-    @onSetup: | 
-      if Services and Servers_init and table.size(Servers_init) == 1 and Services.createAccount then
-        self:setVisible(true)
-      else
-        self:setVisible(false)
-      end
+      EnterGame.showAccountCreation(false)
 
   Label
     id: serverInfoLabel

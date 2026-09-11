@@ -13,6 +13,7 @@ Module
     dofile 'entergame'
     dofile 'characterlist'
     dofile 'createAccount'
+    dofile 'accountregistration'
     EnterGame.init()
     CharacterList.init()
 
